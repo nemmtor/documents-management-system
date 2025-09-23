@@ -15,7 +15,7 @@ describe('DocumentAggregate', () => {
     expect(documentAggregate.content).toBe('new');
   });
 
-  it('should throw DocumentTooOldForContentUpdateError if document is older than 1 year', () => {
+  it('should fail with DocumentTooOldForContentUpdateError if document is older than 1 year', () => {
     const oneYearAndOneDayAgo = new Date();
     oneYearAndOneDayAgo.setFullYear(oneYearAndOneDayAgo.getFullYear() - 1);
     oneYearAndOneDayAgo.setDate(oneYearAndOneDayAgo.getDate() - 1);
@@ -25,12 +25,16 @@ describe('DocumentAggregate', () => {
       content: 'hi',
     });
 
-    expect(() => {
-      documentAggregate.updateContent('new content');
-    }).toThrow(DocumentTooOldForContentUpdateError);
+    const result = documentAggregate.updateContent('new content');
+
+    expect(result._unsafeUnwrapErr()).toEqual(
+      expect.objectContaining({
+        constructor: DocumentTooOldForContentUpdateError,
+      }),
+    );
   });
 
-  it('should not throw DocumentTooOldForContentUpdateError if document is 1 year old', () => {
+  it('should not fail if document is 1 year old', () => {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
     const documentAggregate = new DocumentAggregate({
@@ -39,9 +43,7 @@ describe('DocumentAggregate', () => {
       content: 'hi',
     });
 
-    expect(() => {
-      documentAggregate.updateContent('new content');
-    }).not.toThrow(DocumentTooOldForContentUpdateError);
+    expect(documentAggregate.updateContent('new content').isOk()).toBe(true);
   });
 
   it('should apply DocumentContentUpdatedEvent', () => {

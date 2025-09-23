@@ -19,6 +19,8 @@ This project demonstrates real-world application of enterprise patterns:
 
 *Modular Monolith* - Production-ready structure with microservices extraction capability
 
+*Result pattern* - Confidence over error handling, only http layer is able to throw in order to translate to http response via HttpExceptionFilter.
+
 *London School Testing* - Comprehensive test coverage with strategic mocking
 
 ## ▶️ Running on local

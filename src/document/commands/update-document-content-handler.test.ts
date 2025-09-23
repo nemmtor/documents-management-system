@@ -1,5 +1,6 @@
 import { CqrsModule, EventPublisher } from '@nestjs/cqrs';
 import { Test } from '@nestjs/testing';
+import { ok } from 'neverthrow';
 import { DocumentAggregate } from '../document.aggregate';
 import { DocumentRepository } from '../document.repository';
 import { UpdateDocumentContentCommand } from './update-document-content.command';
@@ -19,7 +20,7 @@ describe('UpdateDocumentContentCommandHandler', () => {
           provide: DocumentRepository,
           useValue: {
             persist: jest.fn(),
-            getOneById: jest.fn(),
+            getOneById: jest.fn(() => ok()),
           },
         },
       ],
@@ -31,11 +32,13 @@ describe('UpdateDocumentContentCommandHandler', () => {
 
   it('should update document in storage', async () => {
     jest.spyOn(documentRepository, 'getOneById').mockResolvedValueOnce(
-      new DocumentAggregate({
-        id: '1',
-        content: 'hi',
-        createdAt: new Date(),
-      }),
+      ok(
+        new DocumentAggregate({
+          id: '1',
+          content: 'hi',
+          createdAt: new Date(),
+        }),
+      ),
     );
     await commandHandler.execute(
       new UpdateDocumentContentCommand({ documentId: '1', content: 'New' }),
@@ -54,7 +57,7 @@ describe('UpdateDocumentContentCommandHandler', () => {
     });
     jest
       .spyOn(documentRepository, 'getOneById')
-      .mockResolvedValueOnce(documentAggregate);
+      .mockResolvedValueOnce(ok(documentAggregate));
     const updateContentSpy = jest.spyOn(documentAggregate, 'updateContent');
     await commandHandler.execute(
       new UpdateDocumentContentCommand({ documentId: '1', content: 'New' }),
@@ -86,11 +89,13 @@ describe('UpdateDocumentContentCommandHandler', () => {
 
   it('should return aggregate id', async () => {
     jest.spyOn(documentRepository, 'getOneById').mockResolvedValueOnce(
-      new DocumentAggregate({
-        id: '1',
-        content: 'hi',
-        createdAt: new Date(),
-      }),
+      ok(
+        new DocumentAggregate({
+          id: '1',
+          content: 'hi',
+          createdAt: new Date(),
+        }),
+      ),
     );
     const result = await commandHandler.execute(
       new UpdateDocumentContentCommand({
@@ -99,6 +104,6 @@ describe('UpdateDocumentContentCommandHandler', () => {
       }),
     );
 
-    expect(result.aggregateId).toBeDefined();
+    expect(result._unsafeUnwrap().aggregateId).toBeDefined();
   });
 });

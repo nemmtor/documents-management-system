@@ -49,12 +49,16 @@ describe('DocumentRepository', () => {
       expect(findSpy).toHaveBeenCalledWith(documentId);
     });
 
-    it('should throw DocumentNotFoundError when document not found', async () => {
+    it('should fail with DocumentNotFoundError when document not found', async () => {
       const documentId = 'non-existent-id';
       jest.spyOn(documentDb, 'find').mockResolvedValue(undefined);
 
-      await expect(repository.getOneById(documentId)).rejects.toThrow(
-        DocumentNotFoundError,
+      const result = await repository.getOneById(documentId);
+
+      expect(result._unsafeUnwrapErr()).toEqual(
+        expect.objectContaining({
+          constructor: DocumentNotFoundError,
+        }),
       );
     });
 
@@ -69,11 +73,14 @@ describe('DocumentRepository', () => {
       jest.spyOn(documentDb, 'find').mockResolvedValue(mockDbDocument);
 
       const result = await repository.getOneById(documentId);
+      const documentAggregate = result._unsafeUnwrap();
 
-      expect(result).toBeInstanceOf(DocumentAggregate);
-      expect(result.id).toBe(documentId);
-      expect(result.content).toBe('existing content');
-      expect(result.createdAt).toEqual(new Date('2023-05-01T10:30:00Z'));
+      expect(documentAggregate).toBeInstanceOf(DocumentAggregate);
+      expect(documentAggregate.id).toBe(documentId);
+      expect(documentAggregate.content).toBe('existing content');
+      expect(documentAggregate.createdAt).toEqual(
+        new Date('2023-05-01T10:30:00Z'),
+      );
     });
 
     it('should convert ISO string to Date object in toEntity mapping', async () => {
@@ -88,9 +95,10 @@ describe('DocumentRepository', () => {
       jest.spyOn(documentDb, 'find').mockResolvedValue(mockDbDocument);
 
       const result = await repository.getOneById(documentId);
+      const documentAggregate = result._unsafeUnwrap();
 
-      expect(result.createdAt).toBeInstanceOf(Date);
-      expect(result.createdAt.toISOString()).toBe(isoString);
+      expect(documentAggregate.createdAt).toBeInstanceOf(Date);
+      expect(documentAggregate.createdAt.toISOString()).toBe(isoString);
     });
   });
 
