@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { err, ok } from 'neverthrow';
@@ -6,9 +7,8 @@ import { UpdateDocumentContentCommand } from './commands/update-document-content
 import { DocumentHttpController } from './document.http-controller';
 import { DocumentNotFoundError } from './errors/document-not-found.error';
 import { DocumentNotFoundHttpError } from './errors/document-not-found.http-error';
-import { GetDocumentQuery } from './queries/get-document.query';
 import { DocumentTooOldForContentUpdateError } from './errors/document-too-old-for-content-update.error';
-import { BadRequestException } from '@nestjs/common';
+import { GetDocumentQuery } from './queries/get-document.query';
 
 describe('DocumentHttpController', () => {
   let controller: DocumentHttpController;
