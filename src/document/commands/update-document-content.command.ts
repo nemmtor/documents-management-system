@@ -4,12 +4,7 @@ import { DocumentNotFoundError } from '../errors/document-not-found.error';
 import { DocumentTooOldForContentUpdateError } from '../errors/document-too-old-for-content-update.error';
 
 export class UpdateDocumentContentCommand extends Command<
-  Result<
-    {
-      aggregateId: string;
-    },
-    DocumentNotFoundError | DocumentTooOldForContentUpdateError
-  >
+  Result<void, DocumentNotFoundError | DocumentTooOldForContentUpdateError>
 > {
   constructor(
     public readonly payload: { documentId: string; content: string },

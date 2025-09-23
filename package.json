@@ -20,7 +20,8 @@
     "lint": "biome lint",
     "lint:fix": "biome lint --write",
     "check-actions": "pnpm exec biome check --formatter-enabled=false --linter-enabled=false",
-    "check-actions:fix": "pnpm exec biome check --formatter-enabled=false --linter-enabled=false --write"
+    "check-actions:fix": "pnpm exec biome check --formatter-enabled=false --linter-enabled=false --write",
+    "check-types": "tsc -b tsconfig.json"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",
