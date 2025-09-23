@@ -12,10 +12,7 @@ import { assertNever } from '../shared/assert-never';
 import { CreateContractCommand } from './command/create-contract.command';
 import { SeeAttachmentCommand } from './command/see-attachment.command';
 import { SignContractCommand } from './command/sign-contract.command';
-import { AttachmentNotFoundError } from './errors/attachment-not-found.error';
 import { AttachmentNotFoundHttpError } from './errors/attachment-not-found.http-error';
-import { CannotSignContractWithUnseenAttachmentsError } from './errors/cannot-sign-contract-with-unseen-attachments.error';
-import { ContractNotFoundError } from './errors/contract-not-found.error';
 import { ContractNotFoundHttpError } from './errors/contract-not-found.http-error';
 import { GetAllContractsQuery } from './queries/get-all-contracts.query';
 import { GetContractQuery } from './queries/get-contract.query';
@@ -73,11 +70,11 @@ export class ContractHttpController {
     );
 
     const mappedResult = commandResult.mapErr((err) => {
-      if (err instanceof ContractNotFoundError) {
+      if (err.name === 'ContractNotFoundError') {
         return new ContractNotFoundHttpError(contractId);
       }
 
-      if (err instanceof AttachmentNotFoundError) {
+      if (err.name === 'AttachmentNotFoundError') {
         return new AttachmentNotFoundHttpError({ contractId, attachmentId });
       }
 
@@ -99,11 +96,11 @@ export class ContractHttpController {
     );
 
     const mappedResult = commandResult.mapErr((err) => {
-      if (err instanceof ContractNotFoundError) {
+      if (err.name === 'ContractNotFoundError') {
         return new ContractNotFoundHttpError(contractId);
       }
 
-      if (err instanceof CannotSignContractWithUnseenAttachmentsError) {
+      if (err.name === 'CannotSignContractWithUnseenAttachmentsError') {
         return new BadRequestException(
           'Cannot sign contract with unseen attachments',
         );
