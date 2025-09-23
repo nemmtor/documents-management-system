@@ -1,11 +1,14 @@
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
+import { err, ok } from 'neverthrow';
 import { CreateDocumentCommand } from './commands/create-document.command';
 import { UpdateDocumentContentCommand } from './commands/update-document-content.command';
 import { DocumentHttpController } from './document.http-controller';
 import { DocumentNotFoundError } from './errors/document-not-found.error';
 import { DocumentNotFoundHttpError } from './errors/document-not-found.http-error';
 import { GetDocumentQuery } from './queries/get-document.query';
+import { DocumentTooOldForContentUpdateError } from './errors/document-too-old-for-content-update.error';
+import { BadRequestException } from '@nestjs/common';
 
 describe('DocumentHttpController', () => {
   let controller: DocumentHttpController;
@@ -115,7 +118,7 @@ describe('DocumentHttpController', () => {
       const dto = { content: 'updated content' };
       const executeSpy = jest
         .spyOn(commandBus, 'execute')
-        .mockResolvedValue(undefined);
+        .mockResolvedValue(ok());
 
       await controller.updateContent(documentId, dto);
 
@@ -131,32 +134,43 @@ describe('DocumentHttpController', () => {
       );
     });
 
-    it('should translate DocumentNotFoundError to DocumentNotFoundHttpError', async () => {
+    it('should throw DocumentNotFoundHttpError if document was not found', async () => {
       const documentId = 'non-existent-doc';
       const dto = { content: 'updated content' };
       const domainError = new DocumentNotFoundError(documentId);
-      jest.spyOn(commandBus, 'execute').mockRejectedValue(domainError);
+      jest.spyOn(commandBus, 'execute').mockResolvedValue(err(domainError));
 
       await expect(controller.updateContent(documentId, dto)).rejects.toThrow(
         DocumentNotFoundHttpError,
       );
     });
 
-    it('should re-throw other errors without translation', async () => {
+    it('should throw BadRequestException if document was too old for content update', async () => {
+      const documentId = 'non-existent-doc';
+      const dto = { content: 'updated content' };
+      const domainError = new DocumentTooOldForContentUpdateError(documentId);
+      jest.spyOn(commandBus, 'execute').mockResolvedValue(err(domainError));
+
+      await expect(controller.updateContent(documentId, dto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw other on unexpected error', async () => {
       const documentId = '1';
       const dto = { content: 'content' };
       const genericError = new Error('Some other error');
-      jest.spyOn(commandBus, 'execute').mockRejectedValue(genericError);
+      jest.spyOn(commandBus, 'execute').mockResolvedValue(err(genericError));
 
       await expect(controller.updateContent(documentId, dto)).rejects.toThrow(
-        'Some other error',
+        'Unexpected error type',
       );
     });
 
     it('should complete successfully when command executes without error', async () => {
       const documentId = '1';
       const dto = { content: 'new content' };
-      jest.spyOn(commandBus, 'execute').mockResolvedValue(undefined);
+      jest.spyOn(commandBus, 'execute').mockResolvedValue(ok());
 
       await expect(
         controller.updateContent(documentId, dto),

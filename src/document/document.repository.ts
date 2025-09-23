@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { err, ok } from 'neverthrow';
 import { DocumentAggregate } from './document.aggregate';
 import { DocumentDb } from './document.db';
 import type { DocumentModel } from './document.model';
@@ -12,10 +13,10 @@ export class DocumentRepository {
     const foundDocument = await this.documentDb.find(id);
 
     if (!foundDocument) {
-      throw new DocumentNotFoundError(id);
+      return err(new DocumentNotFoundError(id));
     }
 
-    return this.toEntity(foundDocument);
+    return ok(this.toEntity(foundDocument));
   }
 
   async persist(document: DocumentAggregate) {

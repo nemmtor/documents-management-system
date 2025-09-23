@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -8,10 +9,12 @@ import {
   Post,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { assertNever } from '../shared/assert-never';
 import { CreateDocumentCommand } from './commands/create-document.command';
 import { UpdateDocumentContentCommand } from './commands/update-document-content.command';
 import { DocumentNotFoundError } from './errors/document-not-found.error';
 import { DocumentNotFoundHttpError } from './errors/document-not-found.http-error';
+import { DocumentTooOldForContentUpdateError } from './errors/document-too-old-for-content-update.error';
 import { GetDocumentQuery } from './queries/get-document.query';
 
 @Controller('documents')
@@ -53,18 +56,27 @@ export class DocumentHttpController {
     @Param('id') documentId: string,
     @Body() dto: { content: string },
   ) {
-    try {
-      await this.commandBus.execute(
-        new UpdateDocumentContentCommand({
-          content: dto.content,
-          documentId: documentId,
-        }),
-      );
-    } catch (error) {
-      if (error instanceof DocumentNotFoundError) {
-        throw new DocumentNotFoundHttpError(documentId);
+    const commandResult = await this.commandBus.execute(
+      new UpdateDocumentContentCommand({
+        content: dto.content,
+        documentId: documentId,
+      }),
+    );
+
+    const mappedResult = commandResult.mapErr((err) => {
+      if (err instanceof DocumentNotFoundError) {
+        return new DocumentNotFoundHttpError(documentId);
       }
-      throw error;
+
+      if (err instanceof DocumentTooOldForContentUpdateError) {
+        return new BadRequestException('Document too old for content update');
+      }
+
+      return assertNever(err, 'Unexpected error type');
+    });
+
+    if (mappedResult.isErr()) {
+      throw mappedResult.error;
     }
   }
 }

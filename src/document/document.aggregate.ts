@@ -1,4 +1,5 @@
 import { AggregateRoot } from '@nestjs/cqrs';
+import { err, ok } from 'neverthrow';
 import { DocumentTooOldForContentUpdateError } from './errors/document-too-old-for-content-update.error';
 import { DocumentContentUpdatedEvent } from './events/document-content-updated.event';
 
@@ -28,11 +29,12 @@ export class DocumentAggregate extends AggregateRoot<DocumentAggregateEvents> {
     const ageInYears = ageInMilliseconds / (1000 * 60 * 60 * 24 * 365);
 
     if (ageInYears > this.MAX_DOCUMENT_AGE_FOR_CONTENT_UPDATE) {
-      throw new DocumentTooOldForContentUpdateError(this.id);
+      return err(new DocumentTooOldForContentUpdateError(this.id));
     }
 
     this._content = newContent;
     this.apply(new DocumentContentUpdatedEvent({ documentId: this.id }));
+    return ok();
   }
 
   get content() {
