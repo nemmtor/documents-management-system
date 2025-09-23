@@ -34,8 +34,6 @@ export class UpdateDocumentContentCommandHandler
     await this.documentRepository.persist(document);
     document.commit();
 
-    return ok({
-      aggregateId: document.id,
-    });
+    return ok();
   }
 }
