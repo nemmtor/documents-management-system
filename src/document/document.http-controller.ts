@@ -12,9 +12,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { assertNever } from '../shared/assert-never';
 import { CreateDocumentCommand } from './commands/create-document.command';
 import { UpdateDocumentContentCommand } from './commands/update-document-content.command';
-import { DocumentNotFoundError } from './errors/document-not-found.error';
 import { DocumentNotFoundHttpError } from './errors/document-not-found.http-error';
-import { DocumentTooOldForContentUpdateError } from './errors/document-too-old-for-content-update.error';
 import { GetDocumentQuery } from './queries/get-document.query';
 
 @Controller('documents')
@@ -64,11 +62,11 @@ export class DocumentHttpController {
     );
 
     const mappedResult = commandResult.mapErr((err) => {
-      if (err instanceof DocumentNotFoundError) {
+      if (err.name === 'DocumentNotFoundError') {
         return new DocumentNotFoundHttpError(documentId);
       }
 
-      if (err instanceof DocumentTooOldForContentUpdateError) {
+      if (err.name === 'DocumentTooOldForContentUpdateError') {
         return new BadRequestException('Document too old for content update');
       }
 

@@ -1,4 +1,7 @@
-export class AttachmentNotFoundError extends Error {
+import { CustomError } from 'ts-custom-error';
+
+export class AttachmentNotFoundError extends CustomError {
+  public readonly name = 'AttachmentNotFoundError';
   public readonly contractId: string;
   public readonly attachmentId: string;
 

@@ -1,8 +1,9 @@
-export class CannotSignContractWithUnseenAttachmentsError extends Error {
-  public readonly contractId: string;
+import { CustomError } from 'ts-custom-error';
 
-  constructor(payload: { contractId: string }) {
+export class CannotSignContractWithUnseenAttachmentsError extends CustomError {
+  public readonly name = 'CannotSignContractWithUnseenAttachmentsError';
+
+  constructor(readonly contractId: string) {
     super();
-    this.contractId = payload.contractId;
   }
 }

@@ -48,11 +48,7 @@ export class ContractAggregate extends AggregateRoot<ContractAggregateEvents> {
     }
 
     if (this._attachments.some((a) => a.isSeen === false)) {
-      return err(
-        new CannotSignContractWithUnseenAttachmentsError({
-          contractId: this.id,
-        }),
-      );
+      return err(new CannotSignContractWithUnseenAttachmentsError(this.id));
     }
 
     this._isSigned = true;
