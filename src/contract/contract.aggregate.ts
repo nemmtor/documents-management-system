@@ -1,4 +1,5 @@
 import { AggregateRoot } from '@nestjs/cqrs';
+import { err, ok } from 'neverthrow';
 import { AttachmentNotFoundError } from './errors/attachment-not-found.error';
 import { CannotSignContractWithUnseenAttachmentsError } from './errors/cannot-sign-contract-with-unseen-attachments.error';
 import { CannotUnseeAttachmentOfSignedContract } from './errors/cannot-unsee-attachment-of-signed-contract.error';
@@ -43,49 +44,60 @@ export class ContractAggregate extends AggregateRoot<ContractAggregateEvents> {
 
   sign() {
     if (this._isSigned) {
-      return;
+      return ok();
     }
 
     if (this._attachments.some((a) => a.isSeen === false)) {
-      throw new CannotSignContractWithUnseenAttachmentsError({
-        contractId: this.id,
-      });
+      return err(
+        new CannotSignContractWithUnseenAttachmentsError({
+          contractId: this.id,
+        }),
+      );
     }
 
     this._isSigned = true;
     this.apply(new ContractSignedEvent({ contractId: this.id }));
+
+    return ok();
   }
 
   seeAttachment(attachmentId: string) {
     const attachment = this._attachments.find((a) => a.id === attachmentId);
     if (attachment?.isSeen) {
-      return;
+      return ok();
     }
     if (!attachment) {
-      throw new AttachmentNotFoundError({ attachmentId, contractId: this.id });
+      return err(
+        new AttachmentNotFoundError({ attachmentId, contractId: this.id }),
+      );
     }
     attachment.isSeen = true;
 
     if (this._attachments.every((a) => a.isSeen)) {
       this.apply(new ContractBecameSignableEvent({ contractId: this.id }));
     }
+
+    return ok();
   }
 
   unseeAttachment(attachmentId: string) {
     if (this._isSigned) {
-      throw new CannotUnseeAttachmentOfSignedContract(this.id);
+      return err(new CannotUnseeAttachmentOfSignedContract(this.id));
     }
 
     const attachment = this._attachments.find((a) => a.id === attachmentId);
     if (!attachment) {
-      throw new AttachmentNotFoundError({ attachmentId, contractId: this.id });
+      return err(
+        new AttachmentNotFoundError({ attachmentId, contractId: this.id }),
+      );
     }
     if (!attachment.isSeen) {
-      return;
+      return ok();
     }
     attachment.isSeen = false;
 
     this.apply(new ContractBecameUnsignableEvent({ contractId: this.id }));
+    return ok();
   }
 
   hasAttachmentWithId(attachmentId: string) {

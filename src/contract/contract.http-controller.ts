@@ -8,6 +8,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { assertNever } from '../shared/assert-never';
 import { CreateContractCommand } from './command/create-contract.command';
 import { SeeAttachmentCommand } from './command/see-attachment.command';
 import { SignContractCommand } from './command/sign-contract.command';
@@ -64,47 +65,54 @@ export class ContractHttpController {
     @Param('contractId') contractId: string,
     @Param('attachmentId') attachmentId: string,
   ) {
-    try {
-      await this.commandBus.execute(
-        new SeeAttachmentCommand({
-          contractId,
-          attachmentId,
-        }),
-      );
-    } catch (error) {
-      if (error instanceof ContractNotFoundError) {
-        throw new ContractNotFoundHttpError(contractId);
+    const commandResult = await this.commandBus.execute(
+      new SeeAttachmentCommand({
+        contractId,
+        attachmentId,
+      }),
+    );
+
+    const mappedResult = commandResult.mapErr((err) => {
+      if (err instanceof ContractNotFoundError) {
+        return new ContractNotFoundHttpError(contractId);
       }
 
-      if (error instanceof AttachmentNotFoundError) {
-        throw new AttachmentNotFoundHttpError({ contractId, attachmentId });
+      if (err instanceof AttachmentNotFoundError) {
+        return new AttachmentNotFoundHttpError({ contractId, attachmentId });
       }
 
-      throw error;
+      return assertNever(err, 'Unexpected error type');
+    });
+
+    if (mappedResult.isErr()) {
+      throw mappedResult.error;
     }
   }
 
   @Post(':contractId/sign')
   @HttpCode(202)
   async sign(@Param('contractId') contractId: string) {
-    try {
-      await this.commandBus.execute(
-        new SignContractCommand({
-          contractId,
-        }),
-      );
-    } catch (error) {
-      if (error instanceof ContractNotFoundError) {
-        throw new ContractNotFoundHttpError(contractId);
+    const commandResult = await this.commandBus.execute(
+      new SignContractCommand({
+        contractId,
+      }),
+    );
+
+    const mappedResult = commandResult.mapErr((err) => {
+      if (err instanceof ContractNotFoundError) {
+        return new ContractNotFoundHttpError(contractId);
       }
 
-      if (error instanceof CannotSignContractWithUnseenAttachmentsError) {
-        throw new BadRequestException(
+      if (err instanceof CannotSignContractWithUnseenAttachmentsError) {
+        return new BadRequestException(
           'Cannot sign contract with unseen attachments',
         );
       }
+      return assertNever(err, 'Unexpected error type');
+    });
 
-      throw error;
+    if (mappedResult.isErr()) {
+      throw mappedResult.error;
     }
   }
 }

@@ -3,6 +3,7 @@ import {
   EventPublisher,
   type ICommandHandler,
 } from '@nestjs/cqrs';
+import { ok } from 'neverthrow';
 import { ContractRepository } from '../contract.repository';
 import { UnseeAttachmentCommand } from './unsee-attachment.command';
 
@@ -16,15 +17,25 @@ export class UnseeAttachmentCommandHandler
   ) {}
 
   async execute(command: UnseeAttachmentCommand) {
-    const contract = this.publisher.mergeObjectContext(
-      await this.contractRepository.getById(command.payload.contractId),
+    const getContractResult = await this.contractRepository.getById(
+      command.payload.contractId,
     );
+    if (getContractResult.isErr()) {
+      return getContractResult;
+    }
+    const contract = this.publisher.mergeObjectContext(getContractResult.value);
     if (!contract.hasAttachmentWithId(command.payload.attachmentId)) {
-      return;
+      return ok();
     }
 
-    contract.unseeAttachment(command.payload.attachmentId);
+    const unseeAttachmentResult = contract.unseeAttachment(
+      command.payload.attachmentId,
+    );
+    if (unseeAttachmentResult.isErr()) {
+      return unseeAttachmentResult;
+    }
     await this.contractRepository.persist(contract);
     contract.commit();
+    return ok();
   }
 }
