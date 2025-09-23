@@ -17,15 +17,15 @@ export class UpdateDocumentContentCommandHandler
   ) {}
 
   async execute(command: UpdateDocumentContentCommand) {
-    const documentResult = await this.documentRepository.getOneById(
+    const getDocumentResult = await this.documentRepository.getOneById(
       command.payload.documentId,
     );
 
-    if (documentResult.isErr()) {
-      return documentResult;
+    if (getDocumentResult.isErr()) {
+      return getDocumentResult;
     }
 
-    const document = this.publisher.mergeObjectContext(documentResult.value);
+    const document = this.publisher.mergeObjectContext(getDocumentResult.value);
 
     const updateContentResult = document.updateContent(command.payload.content);
     if (updateContentResult.isErr()) {

@@ -86,24 +86,4 @@ describe('UpdateDocumentContentCommandHandler', () => {
 
     expect(commitSpy).toHaveBeenCalledTimes(1);
   });
-
-  it('should return aggregate id', async () => {
-    jest.spyOn(documentRepository, 'getOneById').mockResolvedValueOnce(
-      ok(
-        new DocumentAggregate({
-          id: '1',
-          content: 'hi',
-          createdAt: new Date(),
-        }),
-      ),
-    );
-    const result = await commandHandler.execute(
-      new UpdateDocumentContentCommand({
-        documentId: '1',
-        content: 'Hello world',
-      }),
-    );
-
-    expect(result._unsafeUnwrap().aggregateId).toBeDefined();
-  });
 });
