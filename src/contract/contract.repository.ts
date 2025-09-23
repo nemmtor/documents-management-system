@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { err, ok } from 'neverthrow';
 import { ContractAggregate } from './contract.aggregate';
 import { ContractDb } from './contract.db';
 import { ContractModel } from './contract.model';
@@ -12,10 +13,10 @@ export class ContractRepository {
     const foundContract = await this.contractDb.find(id);
 
     if (!foundContract) {
-      throw new ContractNotFoundError(id);
+      return err(new ContractNotFoundError(id));
     }
 
-    return this.toEntity(foundContract);
+    return ok(this.toEntity(foundContract));
   }
 
   async findAllUnsignedIds() {

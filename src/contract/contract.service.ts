@@ -14,7 +14,7 @@ export class ContractService {
     const contracts = await this.contractRepository.findAllUnsignedIds();
 
     for (const contract of contracts) {
-      await this.commandBus.execute(
+      this.commandBus.execute(
         new UnseeAttachmentCommand({ contractId: contract.id, attachmentId }),
       );
     }
