@@ -49,7 +49,7 @@ describe('DocumentHttpController', () => {
       const mockDocument = { id: documentId, content: 'test content' };
       const executeSpy = jest
         .spyOn(queryBus, 'execute')
-        .mockResolvedValue(mockDocument);
+        .mockResolvedValueOnce(mockDocument);
 
       await controller.findOne(documentId);
 
@@ -64,7 +64,7 @@ describe('DocumentHttpController', () => {
 
     it('should throw DocumentNotFoundHttpError when document is not found', async () => {
       const documentId = '1';
-      jest.spyOn(queryBus, 'execute').mockResolvedValue(undefined);
+      jest.spyOn(queryBus, 'execute').mockResolvedValueOnce(undefined);
 
       await expect(controller.findOne(documentId)).rejects.toThrow(
         DocumentNotFoundHttpError,
@@ -74,7 +74,7 @@ describe('DocumentHttpController', () => {
     it('should return document when found', async () => {
       const documentId = '1';
       const mockDocument = { id: documentId, content: 'content' };
-      jest.spyOn(queryBus, 'execute').mockResolvedValue(mockDocument);
+      jest.spyOn(queryBus, 'execute').mockResolvedValueOnce(mockDocument);
 
       const result = await controller.findOne(documentId);
 
@@ -88,7 +88,7 @@ describe('DocumentHttpController', () => {
       const mockResponse = { aggregateId: '1' };
       const executeSpy = jest
         .spyOn(commandBus, 'execute')
-        .mockResolvedValue(mockResponse);
+        .mockResolvedValueOnce(mockResponse);
 
       await controller.create(dto);
 
@@ -101,10 +101,10 @@ describe('DocumentHttpController', () => {
       );
     });
 
-    it('should return documentId from aggregateId', async () => {
+    it('should return created document id', async () => {
       const dto = { content: 'content' };
       const mockResponse = { aggregateId: '1' };
-      jest.spyOn(commandBus, 'execute').mockResolvedValue(mockResponse);
+      jest.spyOn(commandBus, 'execute').mockResolvedValueOnce(mockResponse);
 
       const result = await controller.create(dto);
 
@@ -118,7 +118,7 @@ describe('DocumentHttpController', () => {
       const dto = { content: 'updated content' };
       const executeSpy = jest
         .spyOn(commandBus, 'execute')
-        .mockResolvedValue(ok());
+        .mockResolvedValueOnce(ok());
 
       await controller.updateContent(documentId, dto);
 
@@ -138,7 +138,7 @@ describe('DocumentHttpController', () => {
       const documentId = 'non-existent-doc';
       const dto = { content: 'updated content' };
       const domainError = new DocumentNotFoundError(documentId);
-      jest.spyOn(commandBus, 'execute').mockResolvedValue(err(domainError));
+      jest.spyOn(commandBus, 'execute').mockResolvedValueOnce(err(domainError));
 
       await expect(controller.updateContent(documentId, dto)).rejects.toThrow(
         DocumentNotFoundHttpError,
@@ -149,18 +149,20 @@ describe('DocumentHttpController', () => {
       const documentId = 'non-existent-doc';
       const dto = { content: 'updated content' };
       const domainError = new DocumentTooOldForContentUpdateError(documentId);
-      jest.spyOn(commandBus, 'execute').mockResolvedValue(err(domainError));
+      jest.spyOn(commandBus, 'execute').mockResolvedValueOnce(err(domainError));
 
       await expect(controller.updateContent(documentId, dto)).rejects.toThrow(
         BadRequestException,
       );
     });
 
-    it('should throw other on unexpected error', async () => {
+    it('should throw unexpected error type on unexpected error', async () => {
       const documentId = '1';
       const dto = { content: 'content' };
       const genericError = new Error('Some other error');
-      jest.spyOn(commandBus, 'execute').mockResolvedValue(err(genericError));
+      jest
+        .spyOn(commandBus, 'execute')
+        .mockResolvedValueOnce(err(genericError));
 
       await expect(controller.updateContent(documentId, dto)).rejects.toThrow(
         'Unexpected error type',
@@ -170,7 +172,7 @@ describe('DocumentHttpController', () => {
     it('should complete successfully when command executes without error', async () => {
       const documentId = '1';
       const dto = { content: 'new content' };
-      jest.spyOn(commandBus, 'execute').mockResolvedValue(ok());
+      jest.spyOn(commandBus, 'execute').mockResolvedValueOnce(ok());
 
       await expect(
         controller.updateContent(documentId, dto),
