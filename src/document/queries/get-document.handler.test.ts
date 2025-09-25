@@ -28,7 +28,7 @@ describe('GetDocumentQueryHandler', () => {
     jest.clearAllMocks();
   });
 
-  it('should call documentDb.find with correct documentId', async () => {
+  it('should call db.find with correct document id', async () => {
     const documentId = 'test-doc-id';
     const query = new GetDocumentQuery({ documentId });
     const findSpy = jest
@@ -73,7 +73,7 @@ describe('GetDocumentQueryHandler', () => {
     });
   });
 
-  it('should map only required fields to DocumentReadModel', async () => {
+  it('should return only required fields', async () => {
     const documentId = 'mapping-test';
     const query = new GetDocumentQuery({ documentId });
     const mockDbDocument = {

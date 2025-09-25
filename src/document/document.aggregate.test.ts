@@ -1,3 +1,4 @@
+import { err } from 'neverthrow';
 import { DocumentAggregate } from './document.aggregate';
 import { DocumentTooOldForContentUpdateError } from './errors/document-too-old-for-content-update.error';
 import { DocumentContentUpdatedEvent } from './events/document-content-updated.event';
@@ -35,6 +36,7 @@ describe('DocumentAggregate', () => {
       );
     });
 
+    // TODO: fix flaky test
     it('should not fail if document is 1 year old', () => {
       const oneYearAgo = new Date();
       oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -66,6 +68,22 @@ describe('DocumentAggregate', () => {
       );
     });
 
-    it.todo('should not apply DocumentContentUpdatedEvent on failure');
+    it('should not apply DocumentContentUpdatedEvent on failure', () => {
+      const documentAggregate = new DocumentAggregate({
+        id: '1',
+        createdAt: new Date(),
+        content: 'original content',
+      });
+      const applySpy = jest.spyOn(documentAggregate, 'apply');
+      jest
+        .spyOn(documentAggregate, 'updateContent')
+        .mockReturnValueOnce(
+          err(new DocumentTooOldForContentUpdateError(documentAggregate.id)),
+        );
+
+      documentAggregate.updateContent('new content');
+
+      expect(applySpy).not.toHaveBeenCalled();
+    });
   });
 });

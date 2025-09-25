@@ -1,14 +1,16 @@
 import { CqrsModule, EventPublisher } from '@nestjs/cqrs';
 import { Test } from '@nestjs/testing';
-import { ok } from 'neverthrow';
+import { err, ok } from 'neverthrow';
 import { DocumentAggregate } from '../document.aggregate';
 import { DocumentRepository } from '../document.repository';
+import { DocumentNotFoundError } from '../errors/document-not-found.error';
+import { DocumentTooOldForContentUpdateError } from '../errors/document-too-old-for-content-update.error';
 import { UpdateDocumentContentCommand } from './update-document-content.command';
 import { UpdateDocumentContentCommandHandler } from './update-document-content.handler';
 
 describe('UpdateDocumentContentCommandHandler', () => {
   let commandHandler: UpdateDocumentContentCommandHandler;
-  let documentRepository: DocumentRepository;
+  let repository: DocumentRepository;
   let eventPublisher: EventPublisher;
 
   beforeEach(async () => {
@@ -26,12 +28,12 @@ describe('UpdateDocumentContentCommandHandler', () => {
       ],
     }).compile();
     eventPublisher = mod.get(EventPublisher);
-    documentRepository = mod.get(DocumentRepository);
+    repository = mod.get(DocumentRepository);
     commandHandler = mod.get(UpdateDocumentContentCommandHandler);
   });
 
-  it('should update document in storage', async () => {
-    jest.spyOn(documentRepository, 'getOneById').mockResolvedValueOnce(
+  it('should store updated document', async () => {
+    jest.spyOn(repository, 'getOneById').mockResolvedValueOnce(
       ok(
         new DocumentAggregate({
           id: '1',
@@ -44,7 +46,7 @@ describe('UpdateDocumentContentCommandHandler', () => {
       new UpdateDocumentContentCommand({ documentId: '1', content: 'New' }),
     );
 
-    expect(documentRepository.persist).toHaveBeenCalledWith(
+    expect(repository.persist).toHaveBeenCalledWith(
       expect.objectContaining({ id: '1', content: 'New' }),
     );
   });
@@ -56,7 +58,7 @@ describe('UpdateDocumentContentCommandHandler', () => {
       createdAt: new Date(),
     });
     jest
-      .spyOn(documentRepository, 'getOneById')
+      .spyOn(repository, 'getOneById')
       .mockResolvedValueOnce(ok(documentAggregate));
     const updateContentSpy = jest.spyOn(documentAggregate, 'updateContent');
     await commandHandler.execute(
@@ -85,5 +87,51 @@ describe('UpdateDocumentContentCommandHandler', () => {
     );
 
     expect(commitSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should fail with get document error', async () => {
+    jest
+      .spyOn(repository, 'getOneById')
+      .mockResolvedValueOnce(err(new DocumentNotFoundError('1')));
+
+    const result = await commandHandler.execute(
+      new UpdateDocumentContentCommand({
+        documentId: '1',
+        content: 'Hello world',
+      }),
+    );
+
+    expect(result._unsafeUnwrapErr()).toEqual(
+      expect.objectContaining({ constructor: DocumentNotFoundError }),
+    );
+  });
+
+  it('should fail with update content error', async () => {
+    const documentAggregate = new DocumentAggregate({
+      id: '1',
+      content: 'hi',
+      createdAt: new Date(),
+    });
+    jest
+      .spyOn(eventPublisher, 'mergeObjectContext')
+      .mockReturnValueOnce(documentAggregate);
+    jest
+      .spyOn(documentAggregate, 'updateContent')
+      .mockReturnValueOnce(
+        err(new DocumentTooOldForContentUpdateError(documentAggregate.id)),
+      );
+
+    const result = await commandHandler.execute(
+      new UpdateDocumentContentCommand({
+        documentId: '1',
+        content: 'Hello world',
+      }),
+    );
+
+    expect(result._unsafeUnwrapErr()).toEqual(
+      expect.objectContaining({
+        constructor: DocumentTooOldForContentUpdateError,
+      }),
+    );
   });
 });
