@@ -6,7 +6,7 @@ import { DocumentNotFoundError } from './errors/document-not-found.error';
 
 describe('DocumentRepository', () => {
   let repository: DocumentRepository;
-  let documentDb: DocumentDb;
+  let db: DocumentDb;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,7 +23,7 @@ describe('DocumentRepository', () => {
     }).compile();
 
     repository = module.get<DocumentRepository>(DocumentRepository);
-    documentDb = module.get<DocumentDb>(DocumentDb);
+    db = module.get<DocumentDb>(DocumentDb);
   });
 
   afterEach(() => {
@@ -31,7 +31,7 @@ describe('DocumentRepository', () => {
   });
 
   describe('getOneById', () => {
-    it('should call documentDb.find with correct id', async () => {
+    it('should query db with correct id', async () => {
       const documentId = 'test-id';
       const mockDbDocument = {
         id: documentId,
@@ -40,8 +40,8 @@ describe('DocumentRepository', () => {
         updatedAt: '2023-01-02T00:00:00Z',
       };
       const findSpy = jest
-        .spyOn(documentDb, 'find')
-        .mockResolvedValue(mockDbDocument);
+        .spyOn(db, 'find')
+        .mockResolvedValueOnce(mockDbDocument);
 
       await repository.getOneById(documentId);
 
@@ -51,7 +51,7 @@ describe('DocumentRepository', () => {
 
     it('should fail with DocumentNotFoundError when document not found', async () => {
       const documentId = 'non-existent-id';
-      jest.spyOn(documentDb, 'find').mockResolvedValue(undefined);
+      jest.spyOn(db, 'find').mockResolvedValueOnce(undefined);
 
       const result = await repository.getOneById(documentId);
 
@@ -70,7 +70,7 @@ describe('DocumentRepository', () => {
         createdAt: '2023-05-01T10:30:00Z',
         updatedAt: '2023-05-02T15:45:00Z',
       };
-      jest.spyOn(documentDb, 'find').mockResolvedValue(mockDbDocument);
+      jest.spyOn(db, 'find').mockResolvedValueOnce(mockDbDocument);
 
       const result = await repository.getOneById(documentId);
       const documentAggregate = result._unsafeUnwrap();
@@ -83,7 +83,7 @@ describe('DocumentRepository', () => {
       );
     });
 
-    it('should convert ISO string to Date object in toEntity mapping', async () => {
+    it('should correctly map to entity', async () => {
       const documentId = 'date-test';
       const isoString = '2023-03-15T08:30:00.000Z';
       const mockDbDocument = {
@@ -92,7 +92,7 @@ describe('DocumentRepository', () => {
         createdAt: isoString,
         updatedAt: '2023-03-16T08:30:00.000Z',
       };
-      jest.spyOn(documentDb, 'find').mockResolvedValue(mockDbDocument);
+      jest.spyOn(db, 'find').mockResolvedValueOnce(mockDbDocument);
 
       const result = await repository.getOneById(documentId);
       const documentAggregate = result._unsafeUnwrap();
@@ -103,15 +103,15 @@ describe('DocumentRepository', () => {
   });
 
   describe('persist', () => {
-    it('should call documentDb.insertOrUpdate with correct data', async () => {
+    it('should persist correct data in db', async () => {
       const documentAggregate = new DocumentAggregate({
         id: 'persist-test',
         content: 'content to persist',
         createdAt: new Date('2023-01-01T00:00:00Z'),
       });
       const insertOrUpdateSpy = jest
-        .spyOn(documentDb, 'insertOrUpdate')
-        .mockResolvedValue(undefined);
+        .spyOn(db, 'insertOrUpdate')
+        .mockResolvedValueOnce(undefined);
 
       await repository.persist(documentAggregate);
 
@@ -120,37 +120,21 @@ describe('DocumentRepository', () => {
         id: 'persist-test',
         content: 'content to persist',
         createdAt: '2023-01-01T00:00:00.000Z',
-        updatedAt: expect.any(String),
+        updatedAt: expect.stringMatching(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+        ),
       });
     });
 
-    it('should convert Date to ISO string in toPersistance mapping', async () => {
-      const createdAt = new Date('2023-06-01T12:00:00Z');
-      const documentAggregate = new DocumentAggregate({
-        id: 'iso-test',
-        content: 'test content',
-        createdAt,
-      });
-      const insertOrUpdateSpy = jest
-        .spyOn(documentDb, 'insertOrUpdate')
-        .mockResolvedValue(undefined);
-
-      await repository.persist(documentAggregate);
-
-      const calledWith = insertOrUpdateSpy.mock.calls[0][0];
-      expect(calledWith.createdAt).toBe('2023-06-01T12:00:00.000Z');
-      expect(typeof calledWith.createdAt).toBe('string');
-    });
-
-    it('should add current updatedAt timestamp in toPersistance mapping', async () => {
+    it('should bump updatedAt before persisting', async () => {
       const documentAggregate = new DocumentAggregate({
         id: 'timestamp-test',
         content: 'content',
         createdAt: new Date('2023-01-01T00:00:00Z'),
       });
       const insertOrUpdateSpy = jest
-        .spyOn(documentDb, 'insertOrUpdate')
-        .mockResolvedValue(undefined);
+        .spyOn(db, 'insertOrUpdate')
+        .mockResolvedValueOnce(undefined);
       const beforePersist = new Date();
 
       await repository.persist(documentAggregate);
@@ -165,30 +149,6 @@ describe('DocumentRepository', () => {
       expect(updatedAtDate.getTime()).toBeLessThanOrEqual(
         afterPersist.getTime(),
       );
-    });
-
-    it('should map all required fields for persistence', async () => {
-      const documentAggregate = new DocumentAggregate({
-        id: 'mapping-test',
-        content: 'mapped content',
-        createdAt: new Date('2023-07-01T00:00:00Z'),
-      });
-      const insertOrUpdateSpy = jest
-        .spyOn(documentDb, 'insertOrUpdate')
-        .mockResolvedValue(undefined);
-
-      await repository.persist(documentAggregate);
-
-      const calledWith = insertOrUpdateSpy.mock.calls[0][0];
-      expect(calledWith).toEqual({
-        id: 'mapping-test',
-        content: 'mapped content',
-        createdAt: '2023-07-01T00:00:00.000Z',
-        updatedAt: expect.stringMatching(
-          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
-        ),
-      });
-      expect(Object.keys(calledWith)).toHaveLength(4);
     });
   });
 });
