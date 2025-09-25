@@ -44,9 +44,9 @@ describe('DocumentHttpController', () => {
   });
 
   describe('findOne', () => {
-    it('should execute GetDocumentQuery with correct parameters', async () => {
+    it('should execute GetDocumentQuery with correct payload', async () => {
       const documentId = '1';
-      const mockDocument = { id: documentId, content: 'test content' };
+      const mockDocument = { id: documentId };
       const executeSpy = jest
         .spyOn(queryBus, 'execute')
         .mockResolvedValueOnce(mockDocument);
@@ -63,10 +63,9 @@ describe('DocumentHttpController', () => {
     });
 
     it('should throw DocumentNotFoundHttpError when document is not found', async () => {
-      const documentId = '1';
       jest.spyOn(queryBus, 'execute').mockResolvedValueOnce(undefined);
 
-      await expect(controller.findOne(documentId)).rejects.toThrow(
+      await expect(controller.findOne('1')).rejects.toThrow(
         DocumentNotFoundHttpError,
       );
     });
@@ -83,7 +82,7 @@ describe('DocumentHttpController', () => {
   });
 
   describe('create', () => {
-    it('should execute CreateDocumentCommand with correct parameters', async () => {
+    it('should execute CreateDocumentCommand with correct payload', async () => {
       const dto = { content: 'new document content' };
       const mockResponse = { aggregateId: '1' };
       const executeSpy = jest
@@ -113,7 +112,7 @@ describe('DocumentHttpController', () => {
   });
 
   describe('updateContent', () => {
-    it('should execute UpdateDocumentContentCommand with correct parameters', async () => {
+    it('should execute UpdateDocumentContentCommand with correct payload', async () => {
       const documentId = '1';
       const dto = { content: 'updated content' };
       const executeSpy = jest
