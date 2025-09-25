@@ -1,4 +1,3 @@
-import { err } from 'neverthrow';
 import { DocumentAggregate } from './document.aggregate';
 import { DocumentTooOldForContentUpdateError } from './errors/document-too-old-for-content-update.error';
 import { DocumentContentUpdatedEvent } from './events/document-content-updated.event';
@@ -15,6 +14,18 @@ describe('DocumentAggregate', () => {
       documentAggregate.updateContent('new');
 
       expect(documentAggregate.content).toBe('new');
+    });
+
+    it('should be successfull', () => {
+      const documentAggregate = new DocumentAggregate({
+        id: '1',
+        createdAt: new Date(),
+        content: 'hi',
+      });
+
+      const result = documentAggregate.updateContent('new');
+
+      expect(result.isOk()).toBe(true);
     });
 
     it('should fail with DocumentTooOldForContentUpdateError if document is older than 1 year', () => {
@@ -68,18 +79,17 @@ describe('DocumentAggregate', () => {
       );
     });
 
-    it('should not apply DocumentContentUpdatedEvent on failure', () => {
+    it('should not apply DocumentContentUpdatedEvent if document is older than 1 year', () => {
+      const oneYearAndOneDayAgo = new Date();
+      oneYearAndOneDayAgo.setFullYear(oneYearAndOneDayAgo.getFullYear() - 1);
+      oneYearAndOneDayAgo.setDate(oneYearAndOneDayAgo.getDate() - 1);
+
       const documentAggregate = new DocumentAggregate({
         id: '1',
-        createdAt: new Date(),
+        createdAt: oneYearAndOneDayAgo,
         content: 'original content',
       });
       const applySpy = jest.spyOn(documentAggregate, 'apply');
-      jest
-        .spyOn(documentAggregate, 'updateContent')
-        .mockReturnValueOnce(
-          err(new DocumentTooOldForContentUpdateError(documentAggregate.id)),
-        );
 
       documentAggregate.updateContent('new content');
 
