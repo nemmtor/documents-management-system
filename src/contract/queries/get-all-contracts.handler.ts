@@ -1,7 +1,9 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { ContractDb } from '../contract.db';
-import { ContractReadModel } from './contract.read-model';
-import { GetAllContractsQuery } from './get-all-contracts.query';
+import {
+  ContractReadModel,
+  GetAllContractsQuery,
+} from './get-all-contracts.query';
 
 @QueryHandler(GetAllContractsQuery)
 export class GetAllContractsQueryHandler
@@ -13,7 +15,6 @@ export class GetAllContractsQueryHandler
     const contracts = await this.contractDb.getAll();
 
     return contracts.map((foundContract) => {
-      // TODO: is it ok that it is reusing readmodel or should it be a separate one?
       const readModel: ContractReadModel = {
         id: foundContract.id,
         createdAt: foundContract.createdAt,
