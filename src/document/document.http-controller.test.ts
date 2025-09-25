@@ -156,7 +156,7 @@ describe('DocumentHttpController', () => {
       );
     });
 
-    it('should throw unexpected error type on unexpected error', async () => {
+    it('should throw other on unexpected error', async () => {
       const documentId = '1';
       const dto = { content: 'content' };
       const genericError = new Error('Some other error');
