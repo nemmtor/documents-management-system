@@ -10,7 +10,7 @@ export class ContractService {
     private readonly commandBus: CommandBus,
   ) {}
 
-  async markDocumentAsUnseen(attachmentId: string) {
+  async markAttachmentAsUnseen(attachmentId: string) {
     const contracts = await this.contractRepository.findAllUnsignedIds();
 
     for (const contract of contracts) {

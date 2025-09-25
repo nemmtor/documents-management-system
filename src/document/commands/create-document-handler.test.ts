@@ -7,7 +7,7 @@ import { CreateDocumentCommandHandler } from './create-document.handler';
 
 describe('CreateDocumentCommandHandler', () => {
   let commandHandler: CreateDocumentCommandHandler;
-  let documentRepository: DocumentRepository;
+  let repository: DocumentRepository;
   let eventPublisher: EventPublisher;
 
   beforeEach(async () => {
@@ -24,7 +24,7 @@ describe('CreateDocumentCommandHandler', () => {
       ],
     }).compile();
     eventPublisher = mod.get(EventPublisher);
-    documentRepository = mod.get(DocumentRepository);
+    repository = mod.get(DocumentRepository);
     commandHandler = mod.get(CreateDocumentCommandHandler);
   });
 
@@ -37,7 +37,7 @@ describe('CreateDocumentCommandHandler', () => {
       new CreateDocumentCommand({ content: 'Hello world' }),
     );
 
-    expect(documentRepository.persist).toHaveBeenCalledWith(
+    expect(repository.persist).toHaveBeenCalledWith(
       expect.objectContaining({ content: 'Hello world' }),
     );
   });
@@ -51,15 +51,15 @@ describe('CreateDocumentCommandHandler', () => {
   });
 
   it('should emit aggregate events', async () => {
-    const document = new DocumentAggregate({
+    const documentAggregate = new DocumentAggregate({
       id: '1',
       content: 'hi',
       createdAt: new Date(),
     });
     jest
       .spyOn(eventPublisher, 'mergeObjectContext')
-      .mockReturnValueOnce(document);
-    const commitSpy = jest.spyOn(document, 'commit');
+      .mockReturnValueOnce(documentAggregate);
+    const commitSpy = jest.spyOn(documentAggregate, 'commit');
 
     await commandHandler.execute(
       new CreateDocumentCommand({ content: 'Hello world' }),

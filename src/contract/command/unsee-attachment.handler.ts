@@ -24,9 +24,6 @@ export class UnseeAttachmentCommandHandler
       return getContractResult;
     }
     const contract = this.publisher.mergeObjectContext(getContractResult.value);
-    if (!contract.hasAttachmentWithId(command.payload.attachmentId)) {
-      return ok();
-    }
 
     const unseeAttachmentResult = contract.unseeAttachment(
       command.payload.attachmentId,

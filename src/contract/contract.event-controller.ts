@@ -7,7 +7,7 @@ export class ContractEventController {
   constructor(private readonly contractService: ContractService) {}
 
   @EventPattern('document-content-updated')
-  async handle(data: { payload: { documentId: string } }) {
-    await this.contractService.markDocumentAsUnseen(data.payload.documentId);
+  async handleAttachmentUpdated(data: { payload: { documentId: string } }) {
+    await this.contractService.markAttachmentAsUnseen(data.payload.documentId);
   }
 }

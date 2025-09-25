@@ -1,5 +1,13 @@
 import { Query } from '@nestjs/cqrs';
-import { ContractReadModel } from './contract.read-model';
+
+export type ContractReadModel = {
+  id: string;
+  isSigned: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // TODO: can readmodel return content of attachment? If yes how to retrieve it?
+  attachments: ReadonlyArray<{ isSeen: boolean; id: string }>;
+};
 
 export class GetContractQuery extends Query<ContractReadModel | undefined> {
   constructor(public readonly payload: { contractId: string }) {

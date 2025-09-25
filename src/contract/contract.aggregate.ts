@@ -95,8 +95,4 @@ export class ContractAggregate extends AggregateRoot<ContractAggregateEvents> {
     this.apply(new ContractBecameUnsignableEvent({ contractId: this.id }));
     return ok();
   }
-
-  hasAttachmentWithId(attachmentId: string) {
-    return Boolean(this._attachments.find((a) => a.id === attachmentId));
-  }
 }

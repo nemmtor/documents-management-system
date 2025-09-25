@@ -15,20 +15,20 @@ export class ContractDb {
     const existingIndex = this.data.findIndex((doc) => doc.id === contract.id);
 
     if (existingIndex !== -1) {
-      const updatedDocument: ContractModel = {
+      const updatedContract: ContractModel = {
         ...contract,
         createdAt: this.data[existingIndex].createdAt,
       };
-      this.data[existingIndex] = updatedDocument;
+      this.data[existingIndex] = updatedContract;
       return;
     }
 
-    const newDocument: ContractModel = {
+    const newContract: ContractModel = {
       ...contract,
       createdAt: contract.createdAt,
     };
 
-    this.data.push(newDocument);
+    this.data.push(newContract);
   }
 
   async find(id: string) {
