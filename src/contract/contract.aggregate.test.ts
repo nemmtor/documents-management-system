@@ -167,6 +167,9 @@ describe('ContractAggregate', () => {
       expect(applySpy).toHaveBeenCalledWith(
         expect.objectContaining({
           constructor: ContractBecameSignableEvent,
+          payload: {
+            contractId: contractAggregate.id,
+          },
         }),
       );
     });
@@ -238,12 +241,15 @@ describe('ContractAggregate', () => {
       });
 
       const result = contractAggregate.seeAttachment('2');
+      const error = result._unsafeUnwrapErr();
 
-      expect(result._unsafeUnwrapErr()).toEqual(
+      expect(error).toEqual(
         expect.objectContaining({
           constructor: AttachmentNotFoundError,
         }),
       );
+      expect(error.attachmentId).toBe('2');
+      expect(error.contractId).toBe('1');
     });
   });
 
@@ -301,6 +307,7 @@ describe('ContractAggregate', () => {
       expect(applySpy).toHaveBeenCalledWith(
         expect.objectContaining({
           constructor: ContractBecameUnsignableEvent,
+          payload: { contractId: '1' },
         }),
       );
     });
@@ -389,12 +396,17 @@ describe('ContractAggregate', () => {
       });
 
       const result = contractAggregate.unseeAttachment('2');
+      const error = result._unsafeUnwrapErr();
 
-      expect(result._unsafeUnwrapErr()).toEqual(
+      expect(error).toEqual(
         expect.objectContaining({
           constructor: AttachmentNotFoundError,
         }),
       );
+      expect(
+        error instanceof AttachmentNotFoundError && error.attachmentId,
+      ).toBe('2');
+      expect(error.contractId).toBe('1');
     });
   });
 });

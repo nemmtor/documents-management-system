@@ -163,8 +163,11 @@ describe('DocumentHttpController', () => {
           err(new DocumentTooOldForContentUpdateError(documentId)),
         );
 
-      await expect(controller.updateContent(documentId, dto)).rejects.toThrow(
-        BadRequestException,
+      const promise = controller.updateContent(documentId, dto);
+
+      await expect(promise).rejects.toThrow(BadRequestException);
+      await expect(promise).rejects.toThrow(
+        'Document too old for content update',
       );
     });
 
@@ -175,9 +178,10 @@ describe('DocumentHttpController', () => {
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(err(new Error('Some other error')));
 
-      await expect(controller.updateContent(documentId, dto)).rejects.toThrow(
-        AssertNeverError,
-      );
+      const promise = controller.updateContent(documentId, dto);
+
+      await expect(promise).rejects.toThrow(AssertNeverError);
+      await expect(promise).rejects.toThrow('Unexpected error type');
     });
   });
 });
