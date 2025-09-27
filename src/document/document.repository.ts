@@ -9,7 +9,7 @@ import { DocumentNotFoundError } from './errors/document-not-found.error';
 export class DocumentRepository {
   constructor(private readonly documentDb: DocumentDb) {}
 
-  async getOneById(id: string) {
+  async getById(id: string) {
     const foundDocument = await this.documentDb.find(id);
 
     if (!foundDocument) {

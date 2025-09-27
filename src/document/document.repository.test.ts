@@ -30,11 +30,46 @@ describe('DocumentRepository', () => {
     jest.clearAllMocks();
   });
 
-  describe('getOneById', () => {
-    it('should query db with correct id', async () => {
-      const documentId = 'test-id';
+  describe('getById', () => {
+    it('should return DocumentAggregate when document is found', async () => {
       const mockDbDocument = {
-        id: documentId,
+        id: '1',
+        content: 'existing content',
+        createdAt: '2023-05-01T10:30:00Z',
+        updatedAt: '2023-05-02T15:45:00Z',
+      };
+      jest.spyOn(db, 'find').mockResolvedValueOnce(mockDbDocument);
+
+      const result = await repository.getById(mockDbDocument.id);
+      const documentAggregate = result._unsafeUnwrap();
+
+      expect(documentAggregate).toBeInstanceOf(DocumentAggregate);
+      expect(documentAggregate.id).toBe(mockDbDocument.id);
+    });
+
+    it('should correctly map to entity', async () => {
+      const mockDbDocument = {
+        id: '1',
+        content: 'content',
+        createdAt: '2023-03-15T08:30:00.000Z',
+        updatedAt: '2023-03-16T08:30:00.000Z',
+      };
+      jest.spyOn(db, 'find').mockResolvedValueOnce(mockDbDocument);
+
+      const result = await repository.getById(mockDbDocument.id);
+      const documentAggregate = result._unsafeUnwrap();
+
+      expect(documentAggregate.id).toBe(mockDbDocument.id);
+      expect(documentAggregate.content).toBe(mockDbDocument.content);
+      expect(documentAggregate.createdAt).toBeInstanceOf(Date);
+      expect(documentAggregate.createdAt.toISOString()).toBe(
+        mockDbDocument.createdAt,
+      );
+    });
+
+    it('should query db with correct id', async () => {
+      const mockDbDocument = {
+        id: '1',
         content: 'test content',
         createdAt: '2023-01-01T00:00:00Z',
         updatedAt: '2023-01-02T00:00:00Z',
@@ -43,17 +78,16 @@ describe('DocumentRepository', () => {
         .spyOn(db, 'find')
         .mockResolvedValueOnce(mockDbDocument);
 
-      await repository.getOneById(documentId);
+      await repository.getById(mockDbDocument.id);
 
       expect(findSpy).toHaveBeenCalledTimes(1);
-      expect(findSpy).toHaveBeenCalledWith(documentId);
+      expect(findSpy).toHaveBeenCalledWith(mockDbDocument.id);
     });
 
     it('should fail with DocumentNotFoundError when document not found', async () => {
-      const documentId = 'non-existent-id';
       jest.spyOn(db, 'find').mockResolvedValueOnce(undefined);
 
-      const result = await repository.getOneById(documentId);
+      const result = await repository.getById('1');
 
       expect(result._unsafeUnwrapErr()).toEqual(
         expect.objectContaining({
@@ -61,51 +95,12 @@ describe('DocumentRepository', () => {
         }),
       );
     });
-
-    it('should return DocumentAggregate when document is found', async () => {
-      const documentId = 'existing-id';
-      const mockDbDocument = {
-        id: documentId,
-        content: 'existing content',
-        createdAt: '2023-05-01T10:30:00Z',
-        updatedAt: '2023-05-02T15:45:00Z',
-      };
-      jest.spyOn(db, 'find').mockResolvedValueOnce(mockDbDocument);
-
-      const result = await repository.getOneById(documentId);
-      const documentAggregate = result._unsafeUnwrap();
-
-      expect(documentAggregate).toBeInstanceOf(DocumentAggregate);
-      expect(documentAggregate.id).toBe(documentId);
-      expect(documentAggregate.content).toBe('existing content');
-      expect(documentAggregate.createdAt).toEqual(
-        new Date('2023-05-01T10:30:00Z'),
-      );
-    });
-
-    it('should correctly map to entity', async () => {
-      const documentId = 'date-test';
-      const isoString = '2023-03-15T08:30:00.000Z';
-      const mockDbDocument = {
-        id: documentId,
-        content: 'content',
-        createdAt: isoString,
-        updatedAt: '2023-03-16T08:30:00.000Z',
-      };
-      jest.spyOn(db, 'find').mockResolvedValueOnce(mockDbDocument);
-
-      const result = await repository.getOneById(documentId);
-      const documentAggregate = result._unsafeUnwrap();
-
-      expect(documentAggregate.createdAt).toBeInstanceOf(Date);
-      expect(documentAggregate.createdAt.toISOString()).toBe(isoString);
-    });
   });
 
   describe('persist', () => {
     it('should persist correct data in db', async () => {
       const documentAggregate = new DocumentAggregate({
-        id: 'persist-test',
+        id: '1',
         content: 'content to persist',
         createdAt: new Date('2023-01-01T00:00:00Z'),
       });
@@ -117,9 +112,9 @@ describe('DocumentRepository', () => {
 
       expect(insertOrUpdateSpy).toHaveBeenCalledTimes(1);
       expect(insertOrUpdateSpy).toHaveBeenCalledWith({
-        id: 'persist-test',
-        content: 'content to persist',
-        createdAt: '2023-01-01T00:00:00.000Z',
+        id: documentAggregate.id,
+        content: documentAggregate.content,
+        createdAt: documentAggregate.createdAt.toISOString(),
         updatedAt: expect.stringMatching(
           /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
         ),
@@ -128,7 +123,7 @@ describe('DocumentRepository', () => {
 
     it('should bump updatedAt before persisting', async () => {
       const documentAggregate = new DocumentAggregate({
-        id: 'timestamp-test',
+        id: '1',
         content: 'content',
         createdAt: new Date('2023-01-01T00:00:00Z'),
       });

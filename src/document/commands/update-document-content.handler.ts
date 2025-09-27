@@ -17,7 +17,7 @@ export class UpdateDocumentContentCommandHandler
   ) {}
 
   async execute(command: UpdateDocumentContentCommand) {
-    const getDocumentResult = await this.documentRepository.getOneById(
+    const getDocumentResult = await this.documentRepository.getById(
       command.payload.documentId,
     );
 

@@ -22,7 +22,7 @@ describe('UpdateDocumentContentCommandHandler', () => {
           provide: DocumentRepository,
           useValue: {
             persist: jest.fn(),
-            getOneById: jest.fn(() => ok()),
+            getById: jest.fn(() => ok()),
           },
         },
       ],
@@ -33,7 +33,7 @@ describe('UpdateDocumentContentCommandHandler', () => {
   });
 
   it('should store updated document', async () => {
-    jest.spyOn(repository, 'getOneById').mockResolvedValueOnce(
+    jest.spyOn(repository, 'getById').mockResolvedValueOnce(
       ok(
         new DocumentAggregate({
           id: '1',
@@ -58,7 +58,7 @@ describe('UpdateDocumentContentCommandHandler', () => {
       createdAt: new Date(),
     });
     jest
-      .spyOn(repository, 'getOneById')
+      .spyOn(repository, 'getById')
       .mockResolvedValueOnce(ok(documentAggregate));
     const updateContentSpy = jest.spyOn(documentAggregate, 'updateContent');
     await commandHandler.execute(
@@ -91,7 +91,7 @@ describe('UpdateDocumentContentCommandHandler', () => {
 
   it('should fail with get document error', async () => {
     jest
-      .spyOn(repository, 'getOneById')
+      .spyOn(repository, 'getById')
       .mockResolvedValueOnce(err(new DocumentNotFoundError('1')));
 
     const result = await commandHandler.execute(
