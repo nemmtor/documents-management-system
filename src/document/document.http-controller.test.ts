@@ -46,29 +46,27 @@ describe('DocumentHttpController', () => {
 
   describe('findOne', () => {
     it('should return document when found', async () => {
-      const documentId = '1';
-      const mockDocument = { id: documentId };
+      const mockDocument = { id: '1' };
       jest.spyOn(queryBus, 'execute').mockResolvedValueOnce(mockDocument);
 
-      const result = await controller.findOne(documentId);
+      const result = await controller.findOne(mockDocument.id);
 
       expect(result).toEqual(mockDocument);
     });
 
     it('should execute GetDocumentQuery with correct payload', async () => {
-      const documentId = '1';
-      const mockDocument = { id: documentId };
+      const mockDocument = { id: '1' };
       const executeSpy = jest
         .spyOn(queryBus, 'execute')
         .mockResolvedValueOnce(mockDocument);
 
-      await controller.findOne(documentId);
+      await controller.findOne(mockDocument.id);
 
       expect(executeSpy).toHaveBeenCalledTimes(1);
       expect(executeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           constructor: GetDocumentQuery,
-          payload: { documentId },
+          payload: { documentId: mockDocument.id },
         }),
       );
     });
