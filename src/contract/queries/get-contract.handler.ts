@@ -1,7 +1,6 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { ContractDb } from '../contract.db';
-import { ContractReadModel } from './contract.read-model';
-import { GetContractQuery } from './get-contract.query';
+import { ContractReadModel, GetContractQuery } from './get-contract.query';
 
 @QueryHandler(GetContractQuery)
 export class GetContractQueryHandler
