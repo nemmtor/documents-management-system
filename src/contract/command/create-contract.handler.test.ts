@@ -32,6 +32,16 @@ describe('CreateContractCommandHandler', () => {
     jest.clearAllMocks();
   });
 
+  it('should create unsigned contract', async () => {
+    await commandHandler.execute(
+      new CreateContractCommand({ attachmentIds: ['1'] }),
+    );
+
+    expect(repository.persist).toHaveBeenCalledWith(
+      expect.objectContaining({ isSigned: false }),
+    );
+  });
+
   it('should store created contract', async () => {
     await commandHandler.execute(
       new CreateContractCommand({ attachmentIds: ['1'] }),

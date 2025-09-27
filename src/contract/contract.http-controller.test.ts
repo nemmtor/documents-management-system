@@ -197,9 +197,13 @@ describe('ContractHttpController', () => {
           err(new AttachmentNotFoundError({ attachmentId, contractId })),
         );
 
-      await expect(
-        controller.seeAttachment(contractId, attachmentId),
-      ).rejects.toThrow(AttachmentNotFoundHttpError);
+      const promise = controller.seeAttachment(contractId, attachmentId);
+
+      await expect(promise).rejects.toThrow(AttachmentNotFoundHttpError);
+      await expect(promise).rejects.toMatchObject({
+        attachmentId,
+        contractId,
+      });
     });
 
     it('should throw assertion error on unexpected error', async () => {
@@ -209,9 +213,10 @@ describe('ContractHttpController', () => {
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(err(new Error('Unexpected error')));
 
-      await expect(
-        controller.seeAttachment(contractId, attachmentId),
-      ).rejects.toThrow(AssertNeverError);
+      const promise = controller.seeAttachment(contractId, attachmentId);
+
+      await expect(promise).rejects.toThrow(AssertNeverError);
+      await expect(promise).rejects.toThrow('Unexpected error type');
     });
   });
 
@@ -258,8 +263,11 @@ describe('ContractHttpController', () => {
           err(new CannotSignContractWithUnseenAttachmentsError(contractId)),
         );
 
-      await expect(controller.sign(contractId)).rejects.toThrow(
-        BadRequestException,
+      const promise = controller.sign(contractId);
+
+      await expect(promise).rejects.toThrow(BadRequestException);
+      await expect(promise).rejects.toThrow(
+        'Cannot sign contract with unseen attachments',
       );
     });
 
@@ -269,9 +277,10 @@ describe('ContractHttpController', () => {
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(err(new Error('Unexpected error')));
 
-      await expect(controller.sign(contractId)).rejects.toThrow(
-        AssertNeverError,
-      );
+      const promise = controller.sign(contractId);
+
+      await expect(promise).rejects.toThrow(AssertNeverError);
+      await expect(promise).rejects.toThrow('Unexpected error type');
     });
   });
 });

@@ -57,7 +57,7 @@ describe('ContractRepository', () => {
         createdAt: '2023-05-01T10:30:00.000Z',
         updatedAt: '2023-05-02T15:45:00.000Z',
         isSigned: false,
-        attachments: [],
+        attachments: [{ id: '1', isSeen: false }],
       };
       jest.spyOn(db, 'find').mockResolvedValueOnce(mockDbContract);
 
@@ -71,7 +71,9 @@ describe('ContractRepository', () => {
         mockDbContract.createdAt,
       );
       expect(contractAggregate.isSigned).toBe(false);
-      expect(contractAggregate.attachments).toEqual(mockDbContract.attachments);
+      expect(contractAggregate.attachments).toEqual([
+        { id: '1', isSeen: false },
+      ]);
     });
 
     it('should query db with correct id', async () => {
