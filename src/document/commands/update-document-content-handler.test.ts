@@ -32,6 +32,10 @@ describe('UpdateDocumentContentCommandHandler', () => {
     commandHandler = mod.get(UpdateDocumentContentCommandHandler);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should store updated document', async () => {
     jest.spyOn(repository, 'getById').mockResolvedValueOnce(
       ok(

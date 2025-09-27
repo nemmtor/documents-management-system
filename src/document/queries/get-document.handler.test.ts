@@ -5,7 +5,7 @@ import { GetDocumentQuery } from './get-document.query';
 
 describe('GetDocumentQueryHandler', () => {
   let handler: GetDocumentQueryHandler;
-  let documentDb: DocumentDb;
+  let db: DocumentDb;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -21,19 +21,57 @@ describe('GetDocumentQueryHandler', () => {
     }).compile();
 
     handler = module.get<GetDocumentQueryHandler>(GetDocumentQueryHandler);
-    documentDb = module.get<DocumentDb>(DocumentDb);
+    db = module.get<DocumentDb>(DocumentDb);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should call db.find with correct document id', async () => {
-    const documentId = 'test-doc-id';
+  it('should return DocumentReadModel', async () => {
+    const mockDbDocument = {
+      id: '1',
+      content: 'test content',
+      createdAt: new Date('2023-01-01').toISOString(),
+      updatedAt: new Date('2023-01-02').toISOString(),
+    };
+    const query = new GetDocumentQuery({ documentId: mockDbDocument.id });
+    jest.spyOn(db, 'find').mockResolvedValueOnce(mockDbDocument);
+
+    const result = await handler.execute(query);
+
+    expect(result).toEqual({
+      id: mockDbDocument.id,
+      content: 'test content',
+      createdAt: mockDbDocument.createdAt,
+      updatedAt: mockDbDocument.updatedAt,
+    });
+  });
+
+  it('should return only required fields', async () => {
+    const mockDbDocument = {
+      id: '1',
+      content: 'content',
+      createdAt: new Date('2023-01-01').toISOString(),
+      updatedAt: new Date('2023-01-02').toISOString(),
+      extraField1: 'should not appear',
+      extraField2: 42,
+      extraField3: { nested: 'object' },
+    };
+    const query = new GetDocumentQuery({ documentId: mockDbDocument.id });
+    jest.spyOn(db, 'find').mockResolvedValueOnce(mockDbDocument);
+
+    const result = await handler.execute(query);
+
+    expect(result).not.toHaveProperty('extraField1');
+    expect(result).not.toHaveProperty('extraField2');
+    expect(result).not.toHaveProperty('extraField3');
+  });
+
+  it('should call db.find with document id', async () => {
+    const documentId = '1';
     const query = new GetDocumentQuery({ documentId });
-    const findSpy = jest
-      .spyOn(documentDb, 'find')
-      .mockResolvedValueOnce(undefined);
+    const findSpy = jest.spyOn(db, 'find').mockResolvedValueOnce(undefined);
 
     await handler.execute(query);
 
@@ -42,61 +80,11 @@ describe('GetDocumentQueryHandler', () => {
   });
 
   it('should return undefined when document is not found', async () => {
-    const documentId = 'non-existent-id';
-    const query = new GetDocumentQuery({ documentId });
-    jest.spyOn(documentDb, 'find').mockResolvedValueOnce(undefined);
+    const query = new GetDocumentQuery({ documentId: '1' });
+    jest.spyOn(db, 'find').mockResolvedValueOnce(undefined);
 
     const result = await handler.execute(query);
 
     expect(result).toBeUndefined();
-  });
-
-  it('should return DocumentReadModel when document is found', async () => {
-    const documentId = 'existing-doc';
-    const query = new GetDocumentQuery({ documentId });
-    const mockDbDocument = {
-      id: documentId,
-      content: 'test content',
-      createdAt: new Date('2023-01-01').toISOString(),
-      updatedAt: new Date('2023-01-02').toISOString(),
-      someOtherDbField: 'ignored',
-    };
-    jest.spyOn(documentDb, 'find').mockResolvedValueOnce(mockDbDocument);
-
-    const result = await handler.execute(query);
-
-    expect(result).toEqual({
-      id: documentId,
-      content: 'test content',
-      createdAt: new Date('2023-01-01').toISOString(),
-      updatedAt: new Date('2023-01-02').toISOString(),
-    });
-  });
-
-  it('should return only required fields', async () => {
-    const documentId = 'mapping-test';
-    const query = new GetDocumentQuery({ documentId });
-    const mockDbDocument = {
-      id: documentId,
-      content: 'content',
-      createdAt: new Date('2023-01-01').toISOString(),
-      updatedAt: new Date('2023-01-02').toISOString(),
-      extraField1: 'should not appear',
-      extraField2: 42,
-      extraField3: { nested: 'object' },
-    };
-    jest.spyOn(documentDb, 'find').mockResolvedValueOnce(mockDbDocument);
-
-    const result = await handler.execute(query);
-
-    expect(result).toEqual({
-      id: documentId,
-      content: 'content',
-      createdAt: new Date('2023-01-01').toISOString(),
-      updatedAt: new Date('2023-01-02').toISOString(),
-    });
-    expect(result).not.toHaveProperty('extraField1');
-    expect(result).not.toHaveProperty('extraField2');
-    expect(result).not.toHaveProperty('extraField3');
   });
 });

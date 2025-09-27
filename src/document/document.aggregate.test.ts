@@ -3,6 +3,10 @@ import { DocumentTooOldForContentUpdateError } from './errors/document-too-old-f
 import { DocumentContentUpdatedEvent } from './events/document-content-updated.event';
 
 describe('DocumentAggregate', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('content updating', () => {
     it('should update content', () => {
       const documentAggregate = new DocumentAggregate({
