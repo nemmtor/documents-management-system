@@ -28,6 +28,10 @@ describe('CreateDocumentCommandHandler', () => {
     commandHandler = mod.get(CreateDocumentCommandHandler);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should store created document', async () => {
     await commandHandler.execute(
       new CreateDocumentCommand({ content: 'Hello world' }),

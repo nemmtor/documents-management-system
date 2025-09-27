@@ -24,6 +24,10 @@ describe('DocumentContentUpdatedEventHandler', () => {
     mainQueueClient = mod.get('MAIN_QUEUE');
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("should log information about sending 'document-content-updated' event", () => {
     const logSpy = jest.spyOn(documentLogger, 'log');
     eventHandler.handle(new DocumentContentUpdatedEvent({ documentId: '1' }));
