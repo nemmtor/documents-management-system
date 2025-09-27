@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/main.ts"
+  ],
+  "ignoreDependencies": [
+    "@types/express",
+    "globals",
+    "source-map-support",
+    "ts-loader"
+  ]
+}
