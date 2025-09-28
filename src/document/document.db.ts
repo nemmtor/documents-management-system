@@ -1,34 +1,33 @@
-/* istanbul ignore file */
-import { Injectable } from '@nestjs/common';
-import type { DocumentModel } from './document.model';
+import { Inject, Injectable } from '@nestjs/common';
+import { Collection, Db } from 'mongodb';
+import { DOCUMENT_DB_CLIENT } from './document.constants';
 
-// TODO: replace with real db
+export type DocumentModel = {
+  _id: string;
+  createdAt: string;
+  updatedAt: string;
+  content: string;
+};
+
+type DocumentCollection = Collection<DocumentModel>;
+
 @Injectable()
 export class DocumentDb {
-  private data: DocumentModel[] = [];
-
-  async insertOrUpdate(document: DocumentModel) {
-    const existingIndex = this.data.findIndex((doc) => doc.id === document.id);
-    const existingDocument = this.data[existingIndex];
-
-    if (existingIndex !== -1 && existingDocument) {
-      const updatedDocument: DocumentModel = {
-        ...document,
-        createdAt: existingDocument.createdAt,
-      };
-      this.data[existingIndex] = updatedDocument;
-      return;
-    }
-
-    const newDocument: DocumentModel = {
-      ...document,
-      createdAt: document.createdAt,
-    };
-
-    this.data.push(newDocument);
+  private readonly collection: DocumentCollection;
+  constructor(
+    @Inject(DOCUMENT_DB_CLIENT) private readonly documentDbClient: Db,
+  ) {
+    this.collection =
+      this.documentDbClient.collection<DocumentModel>('document');
   }
 
-  async find(id: string) {
-    return this.data.find((d) => d.id === id);
+  async findOne(
+    ...options: Parameters<DocumentCollection['findOne']>
+  ): Promise<DocumentModel | null> {
+    return this.collection.findOne(...options);
+  }
+
+  async updateOne(...options: Parameters<DocumentCollection['updateOne']>) {
+    await this.collection.updateOne(...options);
   }
 }

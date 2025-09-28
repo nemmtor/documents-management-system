@@ -1,8 +1,8 @@
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientProxy } from '@nestjs/microservices';
 import { Test } from '@nestjs/testing';
+import { CONTRACT_SERVICE_QUEUE_CLIENT_TOKEN } from '../document.constants';
 import { DocumentLogger } from '../document.logger';
-import { CONTRACT_SERVICE_QUEUE_CLIENT } from '../document.tokens';
 import { DocumentContentUpdatedEvent } from './document-content-updated.event';
 import { DocumentContentUpdatedEventHandler } from './document-content-updated.handler';
 
@@ -18,14 +18,14 @@ describe('DocumentContentUpdatedEventHandler', () => {
         DocumentContentUpdatedEventHandler,
         { provide: DocumentLogger, useValue: { log: jest.fn() } },
         {
-          provide: CONTRACT_SERVICE_QUEUE_CLIENT,
+          provide: CONTRACT_SERVICE_QUEUE_CLIENT_TOKEN,
           useValue: { emit: jest.fn() },
         },
       ],
     }).compile();
     eventHandler = mod.get(DocumentContentUpdatedEventHandler);
     documentLogger = mod.get(DocumentLogger);
-    mainQueueClient = mod.get(CONTRACT_SERVICE_QUEUE_CLIENT);
+    mainQueueClient = mod.get(CONTRACT_SERVICE_QUEUE_CLIENT_TOKEN);
   });
 
   afterEach(() => {

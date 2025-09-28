@@ -1,7 +1,15 @@
 import { ConfigType, registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
-type ContractServiceQueueConfig = {
+type ContractServiceQueueConfigShape = {
+  name: string;
+  user: string;
+  password: string;
+  host: string;
+  port: number;
+};
+
+type DocumentDatabaseConfigShape = {
   name: string;
   user: string;
   password: string;
@@ -10,7 +18,8 @@ type ContractServiceQueueConfig = {
 };
 
 type DocumentConfigShape = {
-  contractServiceQueue: ContractServiceQueueConfig;
+  contractServiceQueue: ContractServiceQueueConfigShape;
+  database: DocumentDatabaseConfigShape;
 };
 
 const documentEnvVarsSchema = z.object({
@@ -19,6 +28,14 @@ const documentEnvVarsSchema = z.object({
   RABBIT_PASSWORD: z.string(),
   RABBIT_HOST: z.string(),
   RABBIT_PORT: z
+    .string()
+    .transform((v) => parseInt(v, 10))
+    .pipe(z.number().min(0).max(65535)),
+  DOCUMENT_DB_NAME: z.string(),
+  DOCUMENT_DB_USER: z.string(),
+  DOCUMENT_DB_PASSWORD: z.string(),
+  DOCUMENT_DB_HOST: z.string(),
+  DOCUMENT_DB_PORT: z
     .string()
     .transform((v) => parseInt(v, 10))
     .pipe(z.number().min(0).max(65535)),
@@ -36,6 +53,13 @@ export const documentConfig = registerAs<DocumentConfigShape>(
         password: documentEnvVars.RABBIT_PASSWORD,
         host: documentEnvVars.RABBIT_HOST,
         port: documentEnvVars.RABBIT_PORT,
+      },
+      database: {
+        name: documentEnvVars.DOCUMENT_DB_NAME,
+        user: documentEnvVars.DOCUMENT_DB_USER,
+        password: documentEnvVars.DOCUMENT_DB_PASSWORD,
+        host: documentEnvVars.DOCUMENT_DB_HOST,
+        port: documentEnvVars.DOCUMENT_DB_PORT,
       },
     };
   },
