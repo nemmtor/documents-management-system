@@ -8,10 +8,24 @@ import {
   Post,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import {
+  ApiBadRequestResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+} from '@nestjs/swagger';
+import { ZodResponse } from 'nestjs-zod';
 import { assertNever } from '../shared/assert-never';
 import { CreateContractCommand } from './command/create-contract.command';
 import { SeeAttachmentCommand } from './command/see-attachment.command';
 import { SignContractCommand } from './command/sign-contract.command';
+import { CreateContractRequestDTO } from './dto/create-contract-request.dto';
+import { CreateContractResponseDTO } from './dto/create-contract-response.dto';
+import { GetAllContractsResponseDTO } from './dto/get-all-contracts-response.dto';
+import { GetContractParamsDTO } from './dto/get-contract-params.dto';
+import { GetContractResponseDTO } from './dto/get-contract-response.dto';
+import { SeeAttachmentParamsDTO } from './dto/see-attachment-params.dto';
+import { SignContractParamsDTO } from './dto/sign-contract-params.dto';
 import { AttachmentNotFoundHttpError } from './errors/attachment-not-found.http-error';
 import { ContractNotFoundHttpError } from './errors/contract-not-found.http-error';
 import { GetAllContractsQuery } from './queries/get-all-contracts.query';
@@ -24,15 +38,27 @@ export class ContractHttpController {
     private readonly commandBus: CommandBus,
   ) {}
   @Get()
-  @HttpCode(200)
+  @ZodResponse({
+    status: 200,
+    description: 'List of contracts',
+    type: GetAllContractsResponseDTO,
+  })
+  @ApiInternalServerErrorResponse({ description: 'Something went wrong' })
   async findAll() {
     const contracts = await this.queryBus.execute(new GetAllContractsQuery());
     return contracts;
   }
 
-  @Get(':id')
-  @HttpCode(200)
-  async findOne(@Param('id') contractId: string) {
+  @Get(':contractId')
+  @ZodResponse({
+    status: 200,
+    description: 'Contract',
+    type: GetContractResponseDTO,
+  })
+  @ApiNotFoundResponse({ description: 'Contract not found' })
+  @ApiInternalServerErrorResponse({ description: 'Something went wrong' })
+  async findOne(@Param() params: GetContractParamsDTO) {
+    const { contractId } = params;
     const contract = await this.queryBus.execute(
       new GetContractQuery({ contractId }),
     );
@@ -45,8 +71,14 @@ export class ContractHttpController {
   }
 
   @Post()
-  @HttpCode(202)
-  async create(@Body() dto: { attachmentIds: string[] }) {
+  @ZodResponse({
+    status: 201,
+    description: 'Contract was created',
+    type: CreateContractResponseDTO,
+  })
+  @ApiBadRequestResponse({ description: 'Validation error' })
+  @ApiInternalServerErrorResponse({ description: 'Something went wrong' })
+  async create(@Body() dto: CreateContractRequestDTO) {
     const { aggregateId } = await this.commandBus.execute(
       new CreateContractCommand({
         attachmentIds: dto.attachmentIds,
@@ -57,11 +89,12 @@ export class ContractHttpController {
   }
 
   @Post(':contractId/see-attachment/:attachmentId')
-  @HttpCode(202)
-  async seeAttachment(
-    @Param('contractId') contractId: string,
-    @Param('attachmentId') attachmentId: string,
-  ) {
+  @HttpCode(200)
+  @ApiOkResponse({ description: 'Attachment marked as seen' })
+  @ApiNotFoundResponse({ description: 'Contract or attachment not found' })
+  @ApiInternalServerErrorResponse({ description: 'Something went wrong' })
+  async seeAttachment(@Param() params: SeeAttachmentParamsDTO) {
+    const { attachmentId, contractId } = params;
     const commandResult = await this.commandBus.execute(
       new SeeAttachmentCommand({
         contractId,
@@ -87,8 +120,13 @@ export class ContractHttpController {
   }
 
   @Post(':contractId/sign')
-  @HttpCode(202)
-  async sign(@Param('contractId') contractId: string) {
+  @HttpCode(200)
+  @ApiOkResponse({ description: 'Contract signed' })
+  @ApiBadRequestResponse({ description: 'Contract has unseen attachments' })
+  @ApiNotFoundResponse({ description: 'Contract not found' })
+  @ApiInternalServerErrorResponse({ description: 'Something went wrong' })
+  async sign(@Param() params: SignContractParamsDTO) {
+    const { contractId } = params;
     const commandResult = await this.commandBus.execute(
       new SignContractCommand({
         contractId,

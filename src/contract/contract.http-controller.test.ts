@@ -87,7 +87,7 @@ describe('ContractHttpController', () => {
       const mockContract = { id: contractId };
       jest.spyOn(queryBus, 'execute').mockResolvedValueOnce(mockContract);
 
-      const result = await controller.findOne(contractId);
+      const result = await controller.findOne({ contractId });
 
       expect(result).toEqual(mockContract);
     });
@@ -98,7 +98,7 @@ describe('ContractHttpController', () => {
         .spyOn(queryBus, 'execute')
         .mockResolvedValueOnce({ id: contractId });
 
-      await controller.findOne(contractId);
+      await controller.findOne({ contractId });
 
       expect(executeSpy).toHaveBeenCalledTimes(1);
       expect(executeSpy).toHaveBeenCalledWith(
@@ -112,7 +112,7 @@ describe('ContractHttpController', () => {
     it('should throw ContractNotFoundHttpError when contract is not found', async () => {
       jest.spyOn(queryBus, 'execute').mockResolvedValueOnce(undefined);
 
-      await expect(controller.findOne('1')).rejects.toThrow(
+      await expect(controller.findOne({ contractId: '1' })).rejects.toThrow(
         ContractNotFoundHttpError,
       );
     });
@@ -155,7 +155,7 @@ describe('ContractHttpController', () => {
       jest.spyOn(commandBus, 'execute').mockResolvedValueOnce(ok());
 
       await expect(
-        controller.seeAttachment(contractId, attachmentId),
+        controller.seeAttachment({ contractId, attachmentId }),
       ).resolves.toBeUndefined();
     });
 
@@ -166,7 +166,7 @@ describe('ContractHttpController', () => {
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(ok());
 
-      await controller.seeAttachment(contractId, attachmentId);
+      await controller.seeAttachment({ contractId, attachmentId });
 
       expect(executeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -184,7 +184,7 @@ describe('ContractHttpController', () => {
         .mockResolvedValueOnce(err(new ContractNotFoundError(contractId)));
 
       await expect(
-        controller.seeAttachment(contractId, attachmentId),
+        controller.seeAttachment({ contractId, attachmentId }),
       ).rejects.toThrow(ContractNotFoundHttpError);
     });
 
@@ -197,7 +197,7 @@ describe('ContractHttpController', () => {
           err(new AttachmentNotFoundError({ attachmentId, contractId })),
         );
 
-      const promise = controller.seeAttachment(contractId, attachmentId);
+      const promise = controller.seeAttachment({ contractId, attachmentId });
 
       await expect(promise).rejects.toThrow(AttachmentNotFoundHttpError);
       await expect(promise).rejects.toMatchObject({
@@ -213,7 +213,7 @@ describe('ContractHttpController', () => {
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(err(new Error('Unexpected error')));
 
-      const promise = controller.seeAttachment(contractId, attachmentId);
+      const promise = controller.seeAttachment({ contractId, attachmentId });
 
       await expect(promise).rejects.toThrow(AssertNeverError);
       await expect(promise).rejects.toThrow('Unexpected error type');
@@ -225,7 +225,7 @@ describe('ContractHttpController', () => {
       const contractId = '1';
       jest.spyOn(commandBus, 'execute').mockResolvedValueOnce(ok());
 
-      await expect(controller.sign(contractId)).resolves.toBeUndefined();
+      await expect(controller.sign({ contractId })).resolves.toBeUndefined();
     });
 
     it('should execute SignContractCommand with correct payload', async () => {
@@ -234,7 +234,7 @@ describe('ContractHttpController', () => {
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(ok());
 
-      await controller.sign(contractId);
+      await controller.sign({ contractId });
 
       expect(executeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -250,7 +250,7 @@ describe('ContractHttpController', () => {
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(err(new ContractNotFoundError(contractId)));
 
-      await expect(controller.sign(contractId)).rejects.toThrow(
+      await expect(controller.sign({ contractId })).rejects.toThrow(
         ContractNotFoundHttpError,
       );
     });
@@ -263,7 +263,7 @@ describe('ContractHttpController', () => {
           err(new CannotSignContractWithUnseenAttachmentsError(contractId)),
         );
 
-      const promise = controller.sign(contractId);
+      const promise = controller.sign({ contractId });
 
       await expect(promise).rejects.toThrow(BadRequestException);
       await expect(promise).rejects.toThrow(
@@ -277,7 +277,7 @@ describe('ContractHttpController', () => {
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(err(new Error('Unexpected error')));
 
-      const promise = controller.sign(contractId);
+      const promise = controller.sign({ contractId });
 
       await expect(promise).rejects.toThrow(AssertNeverError);
       await expect(promise).rejects.toThrow('Unexpected error type');
