@@ -1,7 +1,7 @@
 name: document-management-system
 services:
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:4-management
     container_name: rabbitmq
     ports:
       - "${RABBIT_PORT}:5672"
