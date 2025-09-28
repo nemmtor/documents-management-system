@@ -24,8 +24,21 @@ This project demonstrates real-world application of enterprise patterns:
 *London School Testing* - Comprehensive test coverage with strategic mocking
 
 ## ▶️ Running on local
+Add environment variables to .env.development:
+```
+APP_PORT=3000
+
+RABBIT_UI_PORT=15672
+RABBIT_USER=admin
+RABBIT_PASSWORD=admin
+RABBIT_HOST=localhost
+RABBIT_PORT=5672
+
+CONTRACT_SERVICE_QUEUE_NAME=CONTRACT_SERVICE_QUEUE
+```
+
 ```bash
 pnpm install
-docker compose up -d
+./scripts/compose-up.sh
 pnpm start
 ```

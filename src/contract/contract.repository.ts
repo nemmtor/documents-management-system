@@ -47,7 +47,10 @@ export class ContractRepository {
       id: contract.id,
       createdAt: contract.createdAt.toISOString(),
       updatedAt: new Date().toISOString(),
-      attachments: contract.attachments,
+      attachments: contract.attachments.map((attachment) => ({
+        id: attachment.id,
+        isSeen: attachment.isSeen,
+      })),
       isSigned: contract.isSigned,
     };
   }

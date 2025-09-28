@@ -2,6 +2,7 @@ import { Inject } from '@nestjs/common';
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 import { ClientProxy } from '@nestjs/microservices';
 import { DocumentLogger } from '../document.logger';
+import { CONTRACT_SERVICE_QUEUE_CLIENT } from '../document.tokens';
 import { DocumentContentUpdatedEvent } from './document-content-updated.event';
 
 @EventsHandler(DocumentContentUpdatedEvent)
@@ -9,7 +10,8 @@ export class DocumentContentUpdatedEventHandler
   implements IEventHandler<DocumentContentUpdatedEvent>
 {
   constructor(
-    @Inject('MAIN_QUEUE') private readonly mainQueueClient: ClientProxy,
+    @Inject(CONTRACT_SERVICE_QUEUE_CLIENT)
+    private readonly contractServiceQueueClient: ClientProxy,
     private readonly logger: DocumentLogger,
   ) {}
 
@@ -17,6 +19,6 @@ export class DocumentContentUpdatedEventHandler
     this.logger.log(
       `Sending 'document-content-updated' for documentId: ${event.payload.documentId}`,
     );
-    this.mainQueueClient.emit('document-content-updated', event);
+    this.contractServiceQueueClient.emit('document-content-updated', event);
   }
 }
