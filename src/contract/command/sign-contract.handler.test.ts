@@ -1,6 +1,7 @@
 import { CqrsModule, EventPublisher } from '@nestjs/cqrs';
 import { Test } from '@nestjs/testing';
 import { err, ok } from 'neverthrow';
+import { Attachment } from '../attachment.vo';
 import { ContractAggregate } from '../contract.aggregate';
 import { ContractRepository } from '../contract.repository';
 import { CannotSignContractWithUnseenAttachmentsError } from '../errors/cannot-sign-contract-with-unseen-attachments.error';
@@ -77,7 +78,7 @@ describe('SignContractCommandHandler', () => {
       id: '1',
       createdAt: new Date(),
       isSigned: false,
-      attachments: [{ id: '1', isSeen: true }],
+      attachments: [new Attachment({ id: '1', isSeen: true })],
     });
     jest
       .spyOn(eventPublisher, 'mergeObjectContext')

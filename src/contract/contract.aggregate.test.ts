@@ -1,3 +1,4 @@
+import { Attachment } from './attachment.vo';
 import { ContractAggregate } from './contract.aggregate';
 import { AttachmentNotFoundError } from './errors/attachment-not-found.error';
 import { CannotSignContractWithUnseenAttachmentsError } from './errors/cannot-sign-contract-with-unseen-attachments.error';
@@ -86,7 +87,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: false }],
+        attachments: [new Attachment({ id: '1', isSeen: false })],
       });
       const applySpy = jest.spyOn(contractAggregate, 'apply');
 
@@ -100,7 +101,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: false }],
+        attachments: [new Attachment({ id: '1', isSeen: false })],
       });
 
       const result = contractAggregate.sign();
@@ -119,7 +120,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: false }],
+        attachments: [new Attachment({ id: '1', isSeen: false })],
       });
 
       contractAggregate.seeAttachment('1');
@@ -132,7 +133,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: false }],
+        attachments: [new Attachment({ id: '1', isSeen: false })],
       });
 
       const result = contractAggregate.seeAttachment('1');
@@ -145,7 +146,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: true }],
+        attachments: [new Attachment({ id: '1', isSeen: true })],
       });
 
       const result = contractAggregate.seeAttachment('1');
@@ -158,7 +159,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: false }],
+        attachments: [new Attachment({ id: '1', isSeen: false })],
       });
       const applySpy = jest.spyOn(contractAggregate, 'apply');
 
@@ -179,7 +180,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: false }],
+        attachments: [new Attachment({ id: '1', isSeen: false })],
       });
 
       contractAggregate.seeAttachment('2');
@@ -192,7 +193,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: false }],
+        attachments: [new Attachment({ id: '1', isSeen: false })],
       });
       const applySpy = jest.spyOn(contractAggregate, 'apply');
 
@@ -206,7 +207,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: true }],
+        attachments: [new Attachment({ id: '1', isSeen: true })],
       });
       const applySpy = jest.spyOn(contractAggregate, 'apply');
 
@@ -221,8 +222,8 @@ describe('ContractAggregate', () => {
         createdAt: new Date(),
         isSigned: false,
         attachments: [
-          { id: '1', isSeen: false },
-          { id: '2', isSeen: false },
+          new Attachment({ id: '1', isSeen: false }),
+          new Attachment({ id: '2', isSeen: false }),
         ],
       });
       const applySpy = jest.spyOn(contractAggregate, 'apply');
@@ -237,7 +238,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: false }],
+        attachments: [new Attachment({ id: '1', isSeen: false })],
       });
 
       const result = contractAggregate.seeAttachment('2');
@@ -259,7 +260,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: true }],
+        attachments: [new Attachment({ id: '1', isSeen: true })],
       });
 
       contractAggregate.unseeAttachment('1');
@@ -272,7 +273,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: true }],
+        attachments: [new Attachment({ id: '1', isSeen: true })],
       });
 
       const result = contractAggregate.unseeAttachment('1');
@@ -285,7 +286,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: false }],
+        attachments: [new Attachment({ id: '1', isSeen: false })],
       });
 
       const result = contractAggregate.unseeAttachment('1');
@@ -298,7 +299,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: true }],
+        attachments: [new Attachment({ id: '1', isSeen: true })],
       });
       const applySpy = jest.spyOn(contractAggregate, 'apply');
 
@@ -317,7 +318,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: true,
-        attachments: [{ id: '1', isSeen: true }],
+        attachments: [new Attachment({ id: '1', isSeen: true })],
       });
 
       contractAggregate.unseeAttachment('1');
@@ -331,8 +332,8 @@ describe('ContractAggregate', () => {
         createdAt: new Date(),
         isSigned: false,
         attachments: [
-          { id: '1', isSeen: false },
-          { id: '2', isSeen: true },
+          new Attachment({ id: '1', isSeen: false }),
+          new Attachment({ id: '2', isSeen: true }),
         ],
       });
       const applySpy = jest.spyOn(contractAggregate, 'apply');
@@ -347,7 +348,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '2', isSeen: true }],
+        attachments: [new Attachment({ id: '2', isSeen: true })],
       });
       const applySpy = jest.spyOn(contractAggregate, 'apply');
 
@@ -361,7 +362,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: true,
-        attachments: [{ id: '1', isSeen: true }],
+        attachments: [new Attachment({ id: '1', isSeen: true })],
       });
       const applySpy = jest.spyOn(contractAggregate, 'apply');
 
@@ -375,7 +376,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: true,
-        attachments: [{ id: '1', isSeen: true }],
+        attachments: [new Attachment({ id: '1', isSeen: true })],
       });
 
       const result = contractAggregate.unseeAttachment('1');
@@ -392,7 +393,7 @@ describe('ContractAggregate', () => {
         id: '1',
         createdAt: new Date(),
         isSigned: false,
-        attachments: [{ id: '1', isSeen: true }],
+        attachments: [new Attachment({ id: '1', isSeen: true })],
       });
 
       const result = contractAggregate.unseeAttachment('2');

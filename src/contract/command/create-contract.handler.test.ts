@@ -1,5 +1,6 @@
 import { CqrsModule, EventPublisher } from '@nestjs/cqrs';
 import { Test } from '@nestjs/testing';
+import { Attachment } from '../attachment.vo';
 import { ContractAggregate } from '../contract.aggregate';
 import { ContractRepository } from '../contract.repository';
 import { CreateContractCommand } from './create-contract.command';
@@ -48,7 +49,14 @@ describe('CreateContractCommandHandler', () => {
     );
 
     expect(repository.persist).toHaveBeenCalledWith(
-      expect.objectContaining({ attachments: [{ id: '1', isSeen: false }] }),
+      expect.objectContaining({
+        attachments: [expect.objectContaining({ id: '1', isSeen: false })],
+      }),
+    );
+    expect(repository.persist).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attachments: [expect.objectContaining({ constructor: Attachment })],
+      }),
     );
   });
 

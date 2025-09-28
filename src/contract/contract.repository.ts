@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { err, ok } from 'neverthrow';
+import { Attachment } from './attachment.vo';
 import { ContractAggregate } from './contract.aggregate';
 import { ContractDb } from './contract.db';
 import { ContractModel } from './contract.model';
@@ -33,7 +34,10 @@ export class ContractRepository {
     return new ContractAggregate({
       id: contract.id,
       createdAt: new Date(contract.createdAt),
-      attachments: [...contract.attachments],
+      attachments: contract.attachments.map(
+        (attachment) =>
+          new Attachment({ id: attachment.id, isSeen: attachment.isSeen }),
+      ),
       isSigned: contract.isSigned,
     });
   }

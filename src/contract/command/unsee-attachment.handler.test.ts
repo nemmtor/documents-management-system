@@ -1,6 +1,7 @@
 import { CqrsModule, EventPublisher } from '@nestjs/cqrs';
 import { Test } from '@nestjs/testing';
 import { err, ok } from 'neverthrow';
+import { Attachment } from '../attachment.vo';
 import { ContractAggregate } from '../contract.aggregate';
 import { ContractRepository } from '../contract.repository';
 import { CannotUnseeAttachmentOfSignedContract } from '../errors/cannot-unsee-attachment-of-signed-contract.error';
@@ -43,7 +44,7 @@ describe('UnseeAttachmentCommandHandler', () => {
           id: '1',
           createdAt: new Date(),
           isSigned: false,
-          attachments: [{ id: '1', isSeen: true }],
+          attachments: [new Attachment({ id: '1', isSeen: true })],
         }),
       ),
     );
@@ -53,7 +54,14 @@ describe('UnseeAttachmentCommandHandler', () => {
     );
 
     expect(repository.persist).toHaveBeenCalledWith(
-      expect.objectContaining({ attachments: [{ id: '1', isSeen: false }] }),
+      expect.objectContaining({
+        attachments: [expect.objectContaining({ constructor: Attachment })],
+      }),
+    );
+    expect(repository.persist).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attachments: [expect.objectContaining({ id: '1', isSeen: false })],
+      }),
     );
   });
 
@@ -62,7 +70,7 @@ describe('UnseeAttachmentCommandHandler', () => {
       id: '1',
       createdAt: new Date(),
       isSigned: false,
-      attachments: [{ id: '1', isSeen: true }],
+      attachments: [new Attachment({ id: '1', isSeen: true })],
     });
     jest
       .spyOn(repository, 'getById')
@@ -81,7 +89,7 @@ describe('UnseeAttachmentCommandHandler', () => {
       id: '1',
       createdAt: new Date(),
       isSigned: false,
-      attachments: [{ id: '1', isSeen: true }],
+      attachments: [new Attachment({ id: '1', isSeen: true })],
     });
     jest
       .spyOn(eventPublisher, 'mergeObjectContext')
@@ -120,7 +128,7 @@ describe('UnseeAttachmentCommandHandler', () => {
       id: '1',
       createdAt: new Date(),
       isSigned: true,
-      attachments: [{ id: '1', isSeen: true }],
+      attachments: [new Attachment({ id: '1', isSeen: true })],
     });
     jest
       .spyOn(eventPublisher, 'mergeObjectContext')

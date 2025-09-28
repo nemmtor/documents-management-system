@@ -1,5 +1,6 @@
 import { AggregateRoot } from '@nestjs/cqrs';
 import { err, ok } from 'neverthrow';
+import { Attachment } from './attachment.vo';
 import { AttachmentNotFoundError } from './errors/attachment-not-found.error';
 import { CannotSignContractWithUnseenAttachmentsError } from './errors/cannot-sign-contract-with-unseen-attachments.error';
 import { CannotUnseeAttachmentOfSignedContract } from './errors/cannot-unsee-attachment-of-signed-contract.error';
@@ -11,9 +12,6 @@ type ContractAggregateEvents =
   | ContractBecameUnsignableEvent
   | ContractBecameSignableEvent
   | ContractSignedEvent;
-
-// TODO: this is value object - should it be a class?
-type Attachment = { id: string; isSeen: boolean };
 
 export class ContractAggregate extends AggregateRoot<ContractAggregateEvents> {
   public readonly id: string;
@@ -67,7 +65,7 @@ export class ContractAggregate extends AggregateRoot<ContractAggregateEvents> {
         new AttachmentNotFoundError({ attachmentId, contractId: this.id }),
       );
     }
-    attachment.isSeen = true;
+    attachment.see();
 
     if (this._attachments.every((a) => a.isSeen)) {
       this.apply(new ContractBecameSignableEvent({ contractId: this.id }));
@@ -90,7 +88,7 @@ export class ContractAggregate extends AggregateRoot<ContractAggregateEvents> {
     if (!attachment.isSeen) {
       return ok();
     }
-    attachment.isSeen = false;
+    attachment.unsee();
 
     this.apply(new ContractBecameUnsignableEvent({ contractId: this.id }));
     return ok();
