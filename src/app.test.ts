@@ -4,6 +4,8 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './app.module';
 import { documentConfig } from './document/document.config';
+import { DOCUMENT_DB_CLIENT } from './document/document.constants';
+import { DocumentDb } from './document/document.db';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
@@ -21,7 +23,18 @@ describe('AppController (e2e)', () => {
           host: 'localhost',
           port: 6000,
         },
+        database: {
+          name: 'test',
+          user: 'test',
+          password: 'test',
+          host: 'test',
+          port: 'test',
+        },
       })
+      .overrideProvider(DOCUMENT_DB_CLIENT)
+      .useValue(jest.fn())
+      .overrideProvider(DocumentDb)
+      .useValue(jest.fn())
       .compile();
 
     app = moduleFixture.createNestApplication();

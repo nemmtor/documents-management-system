@@ -14,7 +14,7 @@ describe('GetDocumentQueryHandler', () => {
         {
           provide: DocumentDb,
           useValue: {
-            find: jest.fn(),
+            findOne: jest.fn(),
           },
         },
       ],
@@ -30,19 +30,19 @@ describe('GetDocumentQueryHandler', () => {
 
   it('should return DocumentReadModel', async () => {
     const mockDbDocument = {
-      id: '1',
+      _id: '1',
       content: 'test content',
       createdAt: new Date('2023-01-01').toISOString(),
       updatedAt: new Date('2023-01-02').toISOString(),
     };
-    jest.spyOn(db, 'find').mockResolvedValueOnce(mockDbDocument);
+    jest.spyOn(db, 'findOne').mockResolvedValueOnce(mockDbDocument);
 
     const result = await handler.execute(
-      new GetDocumentQuery({ documentId: mockDbDocument.id }),
+      new GetDocumentQuery({ documentId: mockDbDocument._id }),
     );
 
     expect(result).toEqual({
-      id: mockDbDocument.id,
+      id: mockDbDocument._id,
       content: 'test content',
       createdAt: mockDbDocument.createdAt,
       updatedAt: mockDbDocument.updatedAt,
@@ -51,7 +51,7 @@ describe('GetDocumentQueryHandler', () => {
 
   it('should return only required fields', async () => {
     const mockDbDocument = {
-      id: '1',
+      _id: '1',
       content: 'content',
       createdAt: new Date('2023-01-01').toISOString(),
       updatedAt: new Date('2023-01-02').toISOString(),
@@ -59,10 +59,10 @@ describe('GetDocumentQueryHandler', () => {
       extraField2: 42,
       extraField3: { nested: 'object' },
     };
-    jest.spyOn(db, 'find').mockResolvedValueOnce(mockDbDocument);
+    jest.spyOn(db, 'findOne').mockResolvedValueOnce(mockDbDocument);
 
     const result = await handler.execute(
-      new GetDocumentQuery({ documentId: mockDbDocument.id }),
+      new GetDocumentQuery({ documentId: mockDbDocument._id }),
     );
 
     expect(result).not.toHaveProperty('extraField1');
@@ -72,16 +72,16 @@ describe('GetDocumentQueryHandler', () => {
 
   it('should call db.find with document id', async () => {
     const documentId = '1';
-    const findSpy = jest.spyOn(db, 'find').mockResolvedValueOnce(undefined);
+    const findSpy = jest.spyOn(db, 'findOne').mockResolvedValueOnce(null);
 
     await handler.execute(new GetDocumentQuery({ documentId }));
 
     expect(findSpy).toHaveBeenCalledTimes(1);
-    expect(findSpy).toHaveBeenCalledWith(documentId);
+    expect(findSpy).toHaveBeenCalledWith({ _id: documentId });
   });
 
   it('should return undefined when document is not found', async () => {
-    jest.spyOn(db, 'find').mockResolvedValueOnce(undefined);
+    jest.spyOn(db, 'findOne').mockResolvedValueOnce(null);
 
     const result = await handler.execute(
       new GetDocumentQuery({ documentId: '1' }),
