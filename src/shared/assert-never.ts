@@ -7,7 +7,7 @@ export const assertNever = (value: never, message: string) => {
 export class AssertNeverError extends CustomError {
   constructor(
     readonly value: unknown,
-    readonly message: string,
+    override readonly message: string,
   ) {
     super(message);
   }

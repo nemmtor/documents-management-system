@@ -9,11 +9,12 @@ export class DocumentDb {
 
   async insertOrUpdate(document: DocumentModel) {
     const existingIndex = this.data.findIndex((doc) => doc.id === document.id);
+    const existingDocument = this.data[existingIndex];
 
-    if (existingIndex !== -1) {
+    if (existingIndex !== -1 && existingDocument) {
       const updatedDocument: DocumentModel = {
         ...document,
-        createdAt: this.data[existingIndex].createdAt,
+        createdAt: existingDocument.createdAt,
       };
       this.data[existingIndex] = updatedDocument;
       return;

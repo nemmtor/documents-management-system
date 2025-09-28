@@ -1,7 +1,7 @@
 import { CustomError } from 'ts-custom-error';
 
 export class AttachmentNotFoundError extends CustomError {
-  public readonly name = 'AttachmentNotFoundError';
+  public override readonly name = 'AttachmentNotFoundError';
   public readonly contractId: string;
   public readonly attachmentId: string;
 

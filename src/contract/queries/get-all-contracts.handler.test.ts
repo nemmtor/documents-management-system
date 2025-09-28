@@ -52,11 +52,11 @@ describe('GetAllContractsQuery', () => {
     const result = await handler.execute(new GetAllContractsQuery());
 
     expect(result[0]).toEqual({
-      id: mockDbContracts[0].id,
-      createdAt: mockDbContracts[0].createdAt,
-      updatedAt: mockDbContracts[0].updatedAt,
-      isSigned: mockDbContracts[0].isSigned,
-      attachments: mockDbContracts[0].attachments,
+      id: mockDbContracts[0]?.id,
+      createdAt: mockDbContracts[0]?.createdAt,
+      updatedAt: mockDbContracts[0]?.updatedAt,
+      isSigned: mockDbContracts[0]?.isSigned,
+      attachments: mockDbContracts[0]?.attachments,
     });
     expect(result).toHaveLength(2);
   });

@@ -1,8 +1,9 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "document-management-system",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Simple api made with enterprise grade quality",
+  "author": "nemmtor",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
