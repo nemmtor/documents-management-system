@@ -4,11 +4,11 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
-      - "5672:5672"     # AMQP port
-      - "15672:15672"   # Management UI
+      - "${RABBIT_PORT}:5672"
+      - "${RABBIT_UI_PORT}:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
