@@ -13,11 +13,12 @@ export class ContractDb {
 
   async insertOrUpdate(contract: ContractModel) {
     const existingIndex = this.data.findIndex((doc) => doc.id === contract.id);
+    const existingContract = this.data[existingIndex];
 
-    if (existingIndex !== -1) {
+    if (existingIndex !== -1 && existingContract) {
       const updatedContract: ContractModel = {
         ...contract,
-        createdAt: this.data[existingIndex].createdAt,
+        createdAt: existingContract.createdAt,
       };
       this.data[existingIndex] = updatedContract;
       return;

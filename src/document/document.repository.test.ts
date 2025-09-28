@@ -135,7 +135,9 @@ describe('DocumentRepository', () => {
       await repository.persist(documentAggregate);
 
       const afterPersist = new Date();
-      const calledWith = insertOrUpdateSpy.mock.calls[0][0];
+      const calledWith = insertOrUpdateSpy.mock.calls[0]?.[0] ?? {
+        updatedAt: '0',
+      };
       const updatedAtDate = new Date(calledWith.updatedAt);
 
       expect(updatedAtDate.getTime()).toBeGreaterThanOrEqual(

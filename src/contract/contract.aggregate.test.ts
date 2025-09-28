@@ -125,7 +125,7 @@ describe('ContractAggregate', () => {
 
       contractAggregate.seeAttachment('1');
 
-      expect(contractAggregate.attachments[0].isSeen).toBe(true);
+      expect(contractAggregate.attachments[0]?.isSeen).toBe(true);
     });
 
     it('should be successfull', () => {
@@ -185,7 +185,7 @@ describe('ContractAggregate', () => {
 
       contractAggregate.seeAttachment('2');
 
-      expect(contractAggregate.attachments[0].isSeen).toBe(false);
+      expect(contractAggregate.attachments[0]?.isSeen).toBe(false);
     });
 
     it('should not apply ContractBecameSignableEvent if attachment was not found', () => {
@@ -265,7 +265,7 @@ describe('ContractAggregate', () => {
 
       contractAggregate.unseeAttachment('1');
 
-      expect(contractAggregate.attachments[0].isSeen).toBe(false);
+      expect(contractAggregate.attachments[0]?.isSeen).toBe(false);
     });
 
     it('should be successfull', () => {
@@ -323,7 +323,7 @@ describe('ContractAggregate', () => {
 
       contractAggregate.unseeAttachment('1');
 
-      expect(contractAggregate.attachments[0].isSeen).toBe(true);
+      expect(contractAggregate.attachments[0]?.isSeen).toBe(true);
     });
 
     it('should not apply ContractBecameUnsignableEvent if attachment is already unseen', () => {

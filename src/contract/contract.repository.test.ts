@@ -133,7 +133,7 @@ describe('ContractRepository', () => {
 
       const result = await repository.findAllUnsignedIds();
 
-      expect(result[0].id).toBe('1');
+      expect(result[0]?.id).toBe('1');
       expect(result).toHaveLength(1);
     });
 
@@ -187,7 +187,9 @@ describe('ContractRepository', () => {
       await repository.persist(contractAggregate);
 
       const afterPersist = new Date();
-      const calledWith = insertOrUpdateSpy.mock.calls[0][0];
+      const calledWith = insertOrUpdateSpy.mock.calls[0]?.[0] ?? {
+        updatedAt: '0',
+      };
       const updatedAtDate = new Date(calledWith.updatedAt);
 
       expect(updatedAtDate.getTime()).toBeGreaterThanOrEqual(
