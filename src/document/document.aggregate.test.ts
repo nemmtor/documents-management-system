@@ -3,7 +3,13 @@ import { DocumentTooOldForContentUpdateError } from './errors/document-too-old-f
 import { DocumentContentUpdatedEvent } from './events/document-content-updated.event';
 
 describe('DocumentAggregate', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
+  });
+
   afterEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
@@ -33,12 +39,10 @@ describe('DocumentAggregate', () => {
     });
 
     it('should fail with DocumentTooOldForContentUpdateError if document is older than 1 year', () => {
-      const oneYearAndOneDayAgo = new Date();
-      oneYearAndOneDayAgo.setFullYear(oneYearAndOneDayAgo.getFullYear() - 1);
-      oneYearAndOneDayAgo.setDate(oneYearAndOneDayAgo.getDate() - 1);
+      const overOneYearAgo = new Date('2022-12-31T11:59:59.999Z');
       const documentAggregate = new DocumentAggregate({
         id: '1',
-        createdAt: oneYearAndOneDayAgo,
+        createdAt: overOneYearAgo,
         content: 'hi',
       });
 
@@ -51,10 +55,8 @@ describe('DocumentAggregate', () => {
       );
     });
 
-    // TODO: fix flaky test
     it('should not fail if document is 1 year old', () => {
-      const oneYearAgo = new Date();
-      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      const oneYearAgo = new Date('2023-01-01T12:00:00.000Z');
       const documentAggregate = new DocumentAggregate({
         id: '1',
         createdAt: oneYearAgo,
@@ -84,13 +86,10 @@ describe('DocumentAggregate', () => {
     });
 
     it('should not apply DocumentContentUpdatedEvent if document is older than 1 year', () => {
-      const oneYearAndOneDayAgo = new Date();
-      oneYearAndOneDayAgo.setFullYear(oneYearAndOneDayAgo.getFullYear() - 1);
-      oneYearAndOneDayAgo.setDate(oneYearAndOneDayAgo.getDate() - 1);
-
+      const overOneYearAgo = new Date('2022-12-31T11:59:59.999Z');
       const documentAggregate = new DocumentAggregate({
         id: '1',
-        createdAt: oneYearAndOneDayAgo,
+        createdAt: overOneYearAgo,
         content: 'original content',
       });
       const applySpy = jest.spyOn(documentAggregate, 'apply');
