@@ -6,7 +6,7 @@ export type ContractReadModel = {
   createdAt: string;
   updatedAt: string;
   // TODO: can readmodel return content of attachment? If yes how to retrieve it?
-  attachments: ReadonlyArray<{ isSeen: boolean; id: string }>;
+  attachments: Array<{ isSeen: boolean; id: string }>;
 };
 type AllContractsReadModel = ContractReadModel[];
 

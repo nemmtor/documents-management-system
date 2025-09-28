@@ -3,5 +3,5 @@ export type ContractModel = {
   createdAt: string;
   updatedAt: string;
   isSigned: boolean;
-  attachments: ReadonlyArray<{ id: string; isSeen: boolean }>;
+  attachments: Array<{ id: string; isSeen: boolean }>;
 };

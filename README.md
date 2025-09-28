@@ -23,6 +23,13 @@ This project demonstrates real-world application of enterprise patterns:
 
 *London School Testing* - Comprehensive test coverage with strategic mocking
 
+## 🔬 Quality Assurance
+This application maintains exceptional code quality standards:
+- Nearly 100% test coverage - Comprehensive unit, integration, and end-to-end testing
+- Mutation testing resilience - Almost no surviving mutants, ensuring tests validate actual business logic
+- Full OpenAPI specification - Complete API documentation including all possible HTTP error responses
+- KNIP - Automated detection and removal of unused files, dependencies, and dead code for cleaner, more maintainable codebase
+
 ## ▶️ Running on local
 Add environment variables to .env.development:
 ```

@@ -49,7 +49,7 @@ describe('DocumentHttpController', () => {
       const mockDocument = { id: '1' };
       jest.spyOn(queryBus, 'execute').mockResolvedValueOnce(mockDocument);
 
-      const result = await controller.findOne(mockDocument.id);
+      const result = await controller.findOne({ documentId: mockDocument.id });
 
       expect(result).toEqual(mockDocument);
     });
@@ -60,7 +60,7 @@ describe('DocumentHttpController', () => {
         .spyOn(queryBus, 'execute')
         .mockResolvedValueOnce(mockDocument);
 
-      await controller.findOne(mockDocument.id);
+      await controller.findOne({ documentId: mockDocument.id });
 
       expect(executeSpy).toHaveBeenCalledTimes(1);
       expect(executeSpy).toHaveBeenCalledWith(
@@ -74,7 +74,7 @@ describe('DocumentHttpController', () => {
     it('should throw DocumentNotFoundHttpError when document is not found', async () => {
       jest.spyOn(queryBus, 'execute').mockResolvedValueOnce(undefined);
 
-      await expect(controller.findOne('1')).rejects.toThrow(
+      await expect(controller.findOne({ documentId: '1' })).rejects.toThrow(
         DocumentNotFoundHttpError,
       );
     });
@@ -117,7 +117,7 @@ describe('DocumentHttpController', () => {
       jest.spyOn(commandBus, 'execute').mockResolvedValueOnce(ok());
 
       await expect(
-        controller.updateContent(documentId, dto),
+        controller.updateContent({ documentId }, dto),
       ).resolves.toBeUndefined();
     });
 
@@ -128,7 +128,7 @@ describe('DocumentHttpController', () => {
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(ok());
 
-      await controller.updateContent(documentId, dto);
+      await controller.updateContent({ documentId }, dto);
 
       expect(executeSpy).toHaveBeenCalledTimes(1);
       expect(executeSpy).toHaveBeenCalledWith(
@@ -149,9 +149,9 @@ describe('DocumentHttpController', () => {
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(err(new DocumentNotFoundError(documentId)));
 
-      await expect(controller.updateContent(documentId, dto)).rejects.toThrow(
-        DocumentNotFoundHttpError,
-      );
+      await expect(
+        controller.updateContent({ documentId }, dto),
+      ).rejects.toThrow(DocumentNotFoundHttpError);
     });
 
     it('should throw BadRequestException if document was too old for content update', async () => {
@@ -163,7 +163,7 @@ describe('DocumentHttpController', () => {
           err(new DocumentTooOldForContentUpdateError(documentId)),
         );
 
-      const promise = controller.updateContent(documentId, dto);
+      const promise = controller.updateContent({ documentId }, dto);
 
       await expect(promise).rejects.toThrow(BadRequestException);
       await expect(promise).rejects.toThrow(
@@ -178,7 +178,7 @@ describe('DocumentHttpController', () => {
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(err(new Error('Some other error')));
 
-      const promise = controller.updateContent(documentId, dto);
+      const promise = controller.updateContent({ documentId }, dto);
 
       await expect(promise).rejects.toThrow(AssertNeverError);
       await expect(promise).rejects.toThrow('Unexpected error type');
