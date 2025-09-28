@@ -4,6 +4,7 @@ import {
   EventPublisher,
   type ICommandHandler,
 } from '@nestjs/cqrs';
+import { Attachment } from '../attachment.vo';
 import { ContractAggregate } from '../contract.aggregate';
 import { ContractRepository } from '../contract.repository';
 import { CreateContractCommand } from './create-contract.command';
@@ -22,10 +23,9 @@ export class CreateContractCommandHandler
       new ContractAggregate({
         id: randomUUID(),
         createdAt: new Date(),
-        attachments: command.payload.attachmentIds.map((id) => ({
-          id,
-          isSeen: false,
-        })),
+        attachments: command.payload.attachmentIds.map(
+          (id) => new Attachment({ id, isSeen: false }),
+        ),
         isSigned: false,
       }),
     );

@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Attachment } from './attachment.vo';
 import { ContractAggregate } from './contract.aggregate';
 import { ContractDb } from './contract.db';
 import { ContractRepository } from './contract.repository';
@@ -72,7 +73,10 @@ describe('ContractRepository', () => {
       );
       expect(contractAggregate.isSigned).toBe(false);
       expect(contractAggregate.attachments).toEqual([
-        { id: '1', isSeen: false },
+        expect.objectContaining({ constructor: Attachment }),
+      ]);
+      expect(contractAggregate.attachments).toEqual([
+        expect.objectContaining({ id: '1', isSeen: false }),
       ]);
     });
 
