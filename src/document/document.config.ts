@@ -40,4 +40,5 @@ export const documentConfig = registerAs<DocumentConfigShape>(
     };
   },
 );
+
 export type DocumentConfig = ConfigType<typeof documentConfig>;

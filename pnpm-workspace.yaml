@@ -2,3 +2,4 @@ onlyBuiltDependencies:
   - '@nestjs/core'
   - '@scarf/scarf'
   - oxc-resolver
+  - unrs-resolver
