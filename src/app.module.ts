@@ -10,7 +10,7 @@ import { HttpExceptionFilter } from './http-exception.filter';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: `${process.cwd()}/.env.${process.env.NODE_ENV}`,
+      envFilePath: 'env.development',
       cache: true,
     }),
     DocumentModule,

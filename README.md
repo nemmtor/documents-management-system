@@ -25,10 +25,14 @@ This project demonstrates real-world application of enterprise patterns:
 
 ## 🔬 Quality Assurance
 This application maintains exceptional code quality standards:
+- Linting/formatting/code-actions - Checked by Biome
 - Nearly 100% test coverage - Comprehensive unit, integration, and end-to-end testing
 - Mutation testing resilience - Almost no surviving mutants, ensuring tests validate actual business logic
 - Full OpenAPI specification - Complete API documentation including all possible HTTP error responses
+- Typesafety - Strict typescript config
 - KNIP - Automated detection and removal of unused files, dependencies, and dead code for cleaner, more maintainable codebase
+
+Above list is fully checked during Continous Integration via GitHub Actions.
 
 ## ▶️ Running on local
 Add environment variables to .env.development:

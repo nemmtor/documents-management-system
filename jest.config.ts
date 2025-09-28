@@ -8,6 +8,14 @@ const config: Config = {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
   collectCoverageFrom: ['**/*.(t|j)s'],
+  coverageReporters: ['text'],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 90,
+      lines: 90,
+    },
+  },
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
 };
