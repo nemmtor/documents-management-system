@@ -34,6 +34,10 @@ This application maintains exceptional code quality standards:
 
 Above list is fully checked during Continous Integration via GitHub Actions.
 
+## Custom MongoDB provider
+I decided to write custom MongoDB provider to have more control over database layer.
+I also wanted to make mocking db nice and simple, [here's more details](https://gist.github.com/nemmtor/64a84e9ba69640eb4fd05210741267bb).
+
 ## ▶️ Running on local
 Add environment variables to .env.development:
 ```
