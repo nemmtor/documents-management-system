@@ -1,9 +1,14 @@
 import { Command } from '@nestjs/cqrs';
 
-export class CreateDocumentCommand extends Command<{
-  aggregateId: string;
-}> {
-  constructor(public readonly payload: { content: string }) {
+export type CreateDocumentCommandResult = {
+  documentId: string;
+};
+export type CreateDocumentCommandPayload = {
+  content: string;
+};
+
+export class CreateDocumentCommand extends Command<CreateDocumentCommandResult> {
+  constructor(public readonly payload: CreateDocumentCommandPayload) {
     super();
   }
 }

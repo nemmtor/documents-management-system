@@ -3,9 +3,10 @@ import {
   InjectionToken,
   Module,
   ModuleMetadata,
+  OnModuleDestroy,
 } from '@nestjs/common';
 
-import { MongoClient } from 'mongodb';
+import { Db, MongoClient } from 'mongodb';
 
 type MongoClientModuleOptions = {
   host: string;
@@ -20,27 +21,49 @@ type Options = Pick<ModuleMetadata, 'imports'> & {
     ...args: unknown[]
   ) => Promise<MongoClientModuleOptions> | MongoClientModuleOptions;
   inject: InjectionToken[];
-  name: string | symbol;
+  name: string;
 };
 
+class MongoDbProvider implements OnModuleDestroy {
+  constructor(private readonly client: MongoClient) {}
+
+  async onModuleDestroy() {
+    await this.client.close();
+  }
+
+  getDb(): Db {
+    return this.client.db();
+  }
+}
+
 @Module({})
+// biome-ignore lint/complexity/noStaticOnlyClass: Nestjs DI
 export class MongoClientModule {
   static forFeatureAsync(opts: Options): DynamicModule {
+    const providerToken = `${opts.name}_PROVIDER`;
+
     return {
       module: MongoClientModule,
       imports: opts.imports ?? [],
       providers: [
         {
-          provide: opts.name,
+          provide: providerToken,
           useFactory: async (...args: unknown[]) => {
             const config = await opts.useFactory(...args);
             const { host, name, password, port, user } = config;
             const client = await MongoClient.connect(
-              `mongodb://${user}:${password}@${host}:${port}/${name}`,
+              `mongodb://${user}:${password}@${host}:${port}/${name}?directConnection=true`,
             );
-            return client.db();
+            return new MongoDbProvider(client);
           },
           inject: opts.inject,
+        },
+        {
+          provide: opts.name,
+          useFactory: (provider: MongoDbProvider) => {
+            return provider.getDb();
+          },
+          inject: [providerToken],
         },
       ],
       exports: [opts.name],

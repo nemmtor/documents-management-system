@@ -1,6 +1,8 @@
 import { CqrsModule, EventPublisher } from '@nestjs/cqrs';
 import { Test } from '@nestjs/testing';
 import { err, ok } from 'neverthrow';
+import { ReconstituteDocumentAggregatePayloadBuilder } from '../__test-utils__/reconstitute-document-aggregate-payload.builder';
+import { UpdateDocumentContentCommandPayloadBuilder } from '../__test-utils__/update-document-content-command-payload.builder';
 import { DocumentAggregate } from '../document.aggregate';
 import { DocumentRepository } from '../document.repository';
 import { DocumentNotFoundError } from '../errors/document-not-found.error';
@@ -37,57 +39,61 @@ describe('UpdateDocumentContentCommandHandler', () => {
   });
 
   it('should store updated document', async () => {
-    jest.spyOn(repository, 'getById').mockResolvedValueOnce(
-      ok(
-        new DocumentAggregate({
-          id: '1',
-          content: 'hi',
-          createdAt: new Date(),
-        }),
-      ),
-    );
+    jest
+      .spyOn(repository, 'getById')
+      .mockResolvedValueOnce(
+        ok(
+          DocumentAggregate.reconstitute(
+            aReconstituteDocumentAggregatePayload().withId('1').build(),
+          ),
+        ),
+      );
+    const commandPayload = anUpdateDocumentContentCommandPayload()
+      .withDocumentId('1')
+      .withContent('new')
+      .build();
     await commandHandler.execute(
-      new UpdateDocumentContentCommand({ documentId: '1', content: 'New' }),
+      new UpdateDocumentContentCommand(commandPayload),
     );
 
     expect(repository.persist).toHaveBeenCalledWith(
-      expect.objectContaining({ id: '1', content: 'New' }),
+      expect.objectContaining({ id: '1', content: 'new' }),
     );
   });
 
   it('should update document content', async () => {
-    const documentAggregate = new DocumentAggregate({
-      id: '1',
-      content: 'hi',
-      createdAt: new Date(),
-    });
+    const documentAggregate = DocumentAggregate.reconstitute(
+      aReconstituteDocumentAggregatePayload().withId('1').build(),
+    );
     jest
       .spyOn(repository, 'getById')
       .mockResolvedValueOnce(ok(documentAggregate));
     const updateContentSpy = jest.spyOn(documentAggregate, 'updateContent');
+    const commandPayload = anUpdateDocumentContentCommandPayload()
+      .withDocumentId('1')
+      .withContent('new')
+      .build();
+
     await commandHandler.execute(
-      new UpdateDocumentContentCommand({ documentId: '1', content: 'New' }),
+      new UpdateDocumentContentCommand(commandPayload),
     );
 
-    expect(updateContentSpy).toHaveBeenCalledWith('New');
+    expect(updateContentSpy).toHaveBeenCalledWith('new');
   });
 
   it('should emit aggregate events', async () => {
-    const documentAggregate = new DocumentAggregate({
-      id: '1',
-      content: 'hi',
-      createdAt: new Date(),
-    });
+    const documentAggregate = DocumentAggregate.reconstitute(
+      aReconstituteDocumentAggregatePayload().withId('1').build(),
+    );
     jest
       .spyOn(eventPublisher, 'mergeObjectContext')
       .mockReturnValueOnce(documentAggregate);
     const commitSpy = jest.spyOn(documentAggregate, 'commit');
 
     await commandHandler.execute(
-      new UpdateDocumentContentCommand({
-        documentId: '1',
-        content: 'Hello world',
-      }),
+      new UpdateDocumentContentCommand(
+        anUpdateDocumentContentCommandPayload().build(),
+      ),
     );
 
     expect(commitSpy).toHaveBeenCalledTimes(1);
@@ -99,10 +105,9 @@ describe('UpdateDocumentContentCommandHandler', () => {
       .mockResolvedValueOnce(err(new DocumentNotFoundError('1')));
 
     const result = await commandHandler.execute(
-      new UpdateDocumentContentCommand({
-        documentId: '1',
-        content: 'Hello world',
-      }),
+      new UpdateDocumentContentCommand(
+        anUpdateDocumentContentCommandPayload().build(),
+      ),
     );
 
     expect(result._unsafeUnwrapErr()).toEqual(
@@ -111,25 +116,20 @@ describe('UpdateDocumentContentCommandHandler', () => {
   });
 
   it('should fail with update content error', async () => {
-    const documentAggregate = new DocumentAggregate({
-      id: '1',
-      content: 'hi',
-      createdAt: new Date(),
-    });
+    const documentAggregate = DocumentAggregate.reconstitute(
+      aReconstituteDocumentAggregatePayload().withId('1').build(),
+    );
     jest
       .spyOn(eventPublisher, 'mergeObjectContext')
       .mockReturnValueOnce(documentAggregate);
     jest
       .spyOn(documentAggregate, 'updateContent')
-      .mockReturnValueOnce(
-        err(new DocumentTooOldForContentUpdateError(documentAggregate.id)),
-      );
+      .mockReturnValueOnce(err(new DocumentTooOldForContentUpdateError('1')));
 
     const result = await commandHandler.execute(
-      new UpdateDocumentContentCommand({
-        documentId: '1',
-        content: 'Hello world',
-      }),
+      new UpdateDocumentContentCommand(
+        anUpdateDocumentContentCommandPayload().build(),
+      ),
     );
 
     expect(result._unsafeUnwrapErr()).toEqual(
@@ -139,3 +139,9 @@ describe('UpdateDocumentContentCommandHandler', () => {
     );
   });
 });
+
+const aReconstituteDocumentAggregatePayload = () =>
+  new ReconstituteDocumentAggregatePayloadBuilder();
+
+const anUpdateDocumentContentCommandPayload = () =>
+  new UpdateDocumentContentCommandPayloadBuilder();

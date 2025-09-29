@@ -3,6 +3,11 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { err, ok } from 'neverthrow';
 import { AssertNeverError } from '../shared/assert-never';
+import { CreateDocumentCommandResultBuilder } from './__test-utils__/create-document-command-result.builder';
+import { CreateDocumentRequestDTOBuilder } from './__test-utils__/create-document-request-dto.builder';
+import { DocumentReadModelBuilder } from './__test-utils__/document-read-model.builder';
+import { UpdateDocumentContentParamsDTOBuilder } from './__test-utils__/update-document-content-params-dto.builder';
+import { UpdateDocumentContentRequestDTOBuilder } from './__test-utils__/update-document-content-request-dto.builder';
 import { CreateDocumentCommand } from './commands/create-document.command';
 import { UpdateDocumentContentCommand } from './commands/update-document-content.command';
 import { DocumentHttpController } from './document.http-controller';
@@ -46,27 +51,27 @@ describe('DocumentHttpController', () => {
 
   describe('findOne', () => {
     it('should return document when found', async () => {
-      const mockDocument = { id: '1' };
-      jest.spyOn(queryBus, 'execute').mockResolvedValueOnce(mockDocument);
+      const documentReadModel = aDocumentReadModel().withId('1').build();
+      jest.spyOn(queryBus, 'execute').mockResolvedValueOnce(documentReadModel);
 
-      const result = await controller.findOne({ documentId: mockDocument.id });
+      const result = await controller.findOne({ documentId: '1' });
 
-      expect(result).toEqual(mockDocument);
+      expect(result).toEqual(documentReadModel);
     });
 
     it('should execute GetDocumentQuery with correct payload', async () => {
-      const mockDocument = { id: '1' };
+      const documentReadModel = aDocumentReadModel().withId('1').build();
       const executeSpy = jest
         .spyOn(queryBus, 'execute')
-        .mockResolvedValueOnce(mockDocument);
+        .mockResolvedValueOnce(documentReadModel);
 
-      await controller.findOne({ documentId: mockDocument.id });
+      await controller.findOne({ documentId: '1' });
 
       expect(executeSpy).toHaveBeenCalledTimes(1);
       expect(executeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           constructor: GetDocumentQuery,
-          payload: { documentId: mockDocument.id },
+          payload: { documentId: '1' },
         }),
       );
     });
@@ -81,10 +86,12 @@ describe('DocumentHttpController', () => {
   });
 
   describe('create', () => {
-    it('should return created document id', async () => {
-      const dto = { content: 'content' };
-      const mockResponse = { aggregateId: '1' };
-      jest.spyOn(commandBus, 'execute').mockResolvedValueOnce(mockResponse);
+    it('should return correct response', async () => {
+      const dto = aCreateDocumentRequestDTO().build();
+      const commandResult = aCreateDocumentCommandResult()
+        .withDocumentId('1')
+        .build();
+      jest.spyOn(commandBus, 'execute').mockResolvedValueOnce(commandResult);
 
       const result = await controller.create(dto);
 
@@ -92,11 +99,11 @@ describe('DocumentHttpController', () => {
     });
 
     it('should execute CreateDocumentCommand with correct payload', async () => {
-      const dto = { content: 'new document content' };
-      const mockResponse = { aggregateId: '1' };
+      const dto = aCreateDocumentRequestDTO().withContent('content').build();
+      const response = aCreateDocumentCommandResult().build();
       const executeSpy = jest
         .spyOn(commandBus, 'execute')
-        .mockResolvedValueOnce(mockResponse);
+        .mockResolvedValueOnce(response);
 
       await controller.create(dto);
 
@@ -104,7 +111,7 @@ describe('DocumentHttpController', () => {
       expect(executeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           constructor: CreateDocumentCommand,
-          payload: { content: dto.content },
+          payload: { content: 'content' },
         }),
       );
     });
@@ -112,58 +119,66 @@ describe('DocumentHttpController', () => {
 
   describe('updateContent', () => {
     it('should complete successfully', async () => {
-      const documentId = '1';
-      const dto = { content: 'new content' };
+      const params = aUpdateDocumentContentParamsDTO().build();
+      const dto = aUpdateDocumentContentRequestDTO().build();
       jest.spyOn(commandBus, 'execute').mockResolvedValueOnce(ok());
 
       await expect(
-        controller.updateContent({ documentId }, dto),
+        controller.updateContent(params, dto),
       ).resolves.toBeUndefined();
     });
 
     it('should execute UpdateDocumentContentCommand with correct payload', async () => {
-      const documentId = '1';
-      const dto = { content: 'updated content' };
+      const params = aUpdateDocumentContentParamsDTO()
+        .withDocumentId('1')
+        .build();
+      const dto = aUpdateDocumentContentRequestDTO()
+        .withContent('content')
+        .build();
       const executeSpy = jest
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(ok());
 
-      await controller.updateContent({ documentId }, dto);
+      await controller.updateContent(params, dto);
 
       expect(executeSpy).toHaveBeenCalledTimes(1);
       expect(executeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           constructor: UpdateDocumentContentCommand,
           payload: {
-            content: dto.content,
-            documentId: documentId,
+            content: 'content',
+            documentId: '1',
           },
         }),
       );
     });
 
     it('should throw DocumentNotFoundHttpError if document was not found', async () => {
-      const documentId = 'non-existent-doc';
-      const dto = { content: 'updated content' };
+      const params = aUpdateDocumentContentParamsDTO()
+        .withDocumentId('1')
+        .build();
+      const dto = aUpdateDocumentContentRequestDTO().build();
       jest
         .spyOn(commandBus, 'execute')
-        .mockResolvedValueOnce(err(new DocumentNotFoundError(documentId)));
+        .mockResolvedValueOnce(err(new DocumentNotFoundError('1')));
 
-      await expect(
-        controller.updateContent({ documentId }, dto),
-      ).rejects.toThrow(DocumentNotFoundHttpError);
+      await expect(controller.updateContent(params, dto)).rejects.toThrow(
+        DocumentNotFoundHttpError,
+      );
     });
 
     it('should throw BadRequestException if document was too old for content update', async () => {
-      const documentId = 'non-existent-doc';
-      const dto = { content: 'updated content' };
+      const params = aUpdateDocumentContentParamsDTO()
+        .withDocumentId('1')
+        .build();
+      const dto = aUpdateDocumentContentRequestDTO().build();
       jest
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(
-          err(new DocumentTooOldForContentUpdateError(documentId)),
+          err(new DocumentTooOldForContentUpdateError('1')),
         );
 
-      const promise = controller.updateContent({ documentId }, dto);
+      const promise = controller.updateContent(params, dto);
 
       await expect(promise).rejects.toThrow(BadRequestException);
       await expect(promise).rejects.toThrow(
@@ -172,16 +187,27 @@ describe('DocumentHttpController', () => {
     });
 
     it('should throw assertion error on unexpected error', async () => {
-      const documentId = '1';
-      const dto = { content: 'content' };
+      const params = aUpdateDocumentContentParamsDTO()
+        .withDocumentId('1')
+        .build();
+      const dto = aUpdateDocumentContentRequestDTO().build();
       jest
         .spyOn(commandBus, 'execute')
         .mockResolvedValueOnce(err(new Error('Some other error')));
 
-      const promise = controller.updateContent({ documentId }, dto);
+      const promise = controller.updateContent(params, dto);
 
       await expect(promise).rejects.toThrow(AssertNeverError);
       await expect(promise).rejects.toThrow('Unexpected error type');
     });
   });
 });
+
+const aDocumentReadModel = () => new DocumentReadModelBuilder();
+const aCreateDocumentRequestDTO = () => new CreateDocumentRequestDTOBuilder();
+const aCreateDocumentCommandResult = () =>
+  new CreateDocumentCommandResultBuilder();
+const aUpdateDocumentContentRequestDTO = () =>
+  new UpdateDocumentContentRequestDTOBuilder();
+const aUpdateDocumentContentParamsDTO = () =>
+  new UpdateDocumentContentParamsDTOBuilder();

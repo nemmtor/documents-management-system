@@ -6,16 +6,19 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MongoClientModule } from '../mongo-client.module';
 import { CreateDocumentCommandHandler } from './commands/create-document.handler';
 import { UpdateDocumentContentCommandHandler } from './commands/update-document-content.handler';
-import { DocumentConfig, documentConfig } from './document.config';
+import { DocumentConfig, documentConfig } from './config/document.config';
 import {
   CONTRACT_SERVICE_QUEUE_CLIENT_TOKEN,
-  DOCUMENT_DB_CLIENT,
+  DOCUMENT_READ_DB,
+  DOCUMENT_WRITE_DB,
 } from './document.constants';
-import { DocumentDb } from './document.db';
 import { DocumentHttpController } from './document.http-controller';
 import { DocumentLogger } from './document.logger';
 import { DocumentRepository } from './document.repository';
+import { DocumentReadDbClient } from './document-read.db-client';
+import { DocumentWriteDbClient } from './document-write.db-client';
 import { DocumentContentUpdatedEventHandler } from './events/document-content-updated.handler';
+import { DocumentCreatedEventHandler } from './events/document-created.handler';
 import { GetDocumentQueryHandler } from './queries/get-document.handler';
 
 const queryHandlers = [GetDocumentQueryHandler] as const;
@@ -23,12 +26,22 @@ const commandHandlers = [
   UpdateDocumentContentCommandHandler,
   CreateDocumentCommandHandler,
 ] as const;
-const eventHandlers = [DocumentContentUpdatedEventHandler] as const;
+const eventHandlers = [
+  DocumentCreatedEventHandler,
+  DocumentContentUpdatedEventHandler,
+] as const;
 
-const DocumentDbClient = MongoClientModule.forFeatureAsync({
-  name: DOCUMENT_DB_CLIENT,
+const DocumentWriteDb = MongoClientModule.forFeatureAsync({
+  name: DOCUMENT_WRITE_DB,
   imports: [ConfigModule.forFeature(documentConfig)],
-  useFactory: async (config: DocumentConfig) => config.database,
+  useFactory: async (config: DocumentConfig) => config.writeDatabase,
+  inject: [documentConfig.KEY],
+});
+
+const DocumentReadDb = MongoClientModule.forFeatureAsync({
+  name: DOCUMENT_READ_DB,
+  imports: [ConfigModule.forFeature(documentConfig)],
+  useFactory: async (config: DocumentConfig) => config.readDatabase,
   inject: [documentConfig.KEY],
 });
 
@@ -57,13 +70,15 @@ const ContractServiceQueueClient = ClientsModule.registerAsync([
   imports: [
     ConfigModule.forFeature(documentConfig),
     CqrsModule,
-    DocumentDbClient,
+    DocumentWriteDb,
+    DocumentReadDb,
     ContractServiceQueueClient,
   ],
   controllers: [DocumentHttpController],
   exports: [ConfigModule],
   providers: [
-    DocumentDb,
+    DocumentWriteDbClient,
+    DocumentReadDbClient,
     DocumentRepository,
     DocumentLogger,
     ...queryHandlers,

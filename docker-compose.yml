@@ -1,8 +1,8 @@
 name: document-management-system
 services:
-  rabbitmq:
+  message-broker:
     image: rabbitmq:4-management
-    container_name: rabbitmq
+    container_name: message-broker
     ports:
       - "${RABBIT_PORT}:5672"
       - "${RABBIT_UI_PORT}:15672"
@@ -12,23 +12,40 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  documentdb:
+  document-write-db:
     image: mongo:8
-    container_name: documentdb
+    container_name: document-write-db
     restart: always
     ports:
-      - "${DOCUMENT_DB_PORT}:27017"
+      - "${DOCUMENT_WRITE_DB_PORT}:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DOCUMENT_DB_ROOT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${DOCUMENT_DB_ROOT_PASSWORD}
-      DOCUMENT_DB_USER: ${DOCUMENT_DB_USER}
-      DOCUMENT_DB_PASSWORD: ${DOCUMENT_DB_PASSWORD}
-      DOCUMENT_DB_NAME: ${DOCUMENT_DB_NAME}
+      MONGO_INITDB_ROOT_USERNAME: ${DOCUMENT_WRITE_DB_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DOCUMENT_WRITE_DB_ROOT_PASSWORD}
+      DB_USER: ${DOCUMENT_WRITE_DB_USER}
+      DB_PASSWORD: ${DOCUMENT_WRITE_DB_PASSWORD}
+      DB_NAME: ${DOCUMENT_WRITE_DB_NAME}
     volumes:
-      - mongo_data:/data/db
-      - ./scripts/init-document-db.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+      - document_write_db_data:/data/db
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+
+  document-read-db:
+    container_name: document-read-db
+    image: mongo:8
+    restart: always
+    ports:
+      - "${DOCUMENT_READ_DB_PORT}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DOCUMENT_READ_DB_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DOCUMENT_READ_DB_ROOT_PASSWORD}
+      DB_USER: ${DOCUMENT_READ_DB_USER}
+      DB_PASSWORD: ${DOCUMENT_READ_DB_PASSWORD}
+      DB_NAME: ${DOCUMENT_READ_DB_NAME}
+    volumes:
+      - document_read_db_data:/data/db
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+
 
 volumes:
   rabbitmq_data:
-  mongo_data:
-    driver: local
+  document_write_db_data:
+  document_read_db_data:

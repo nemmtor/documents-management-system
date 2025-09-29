@@ -19,6 +19,7 @@ import { ZodResponse } from 'nestjs-zod';
 import { assertNever } from '../shared/assert-never';
 import { CreateDocumentCommand } from './commands/create-document.command';
 import { UpdateDocumentContentCommand } from './commands/update-document-content.command';
+import { CreateDocumentRequestDTO } from './dto/create-document-request.dto';
 import { CreateDocumentResponseDTO } from './dto/create-document-response.dto';
 import { GetDocumentParamsDTO } from './dto/get-document-params.dto';
 import { GetDocumentResponseDTO } from './dto/get-document-response.dto';
@@ -62,14 +63,14 @@ export class DocumentHttpController {
     description: 'Document created',
   })
   @ApiInternalServerErrorResponse({ description: 'Something went wrong' })
-  async create(@Body() dto: { content: string }) {
-    const { aggregateId } = await this.commandBus.execute(
+  async create(@Body() dto: CreateDocumentRequestDTO) {
+    const { documentId } = await this.commandBus.execute(
       new CreateDocumentCommand({
         content: dto.content,
       }),
     );
 
-    return { documentId: aggregateId };
+    return { documentId };
   }
 
   @Patch(':documentId')

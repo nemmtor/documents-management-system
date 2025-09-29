@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { err, ok } from 'neverthrow';
 import { DocumentAggregate } from './document.aggregate';
-import { DocumentDb, DocumentModel } from './document.db';
+import {
+  DocumentWriteDbClient,
+  DocumentWritePersistanceModel,
+} from './document-write.db-client';
 import { DocumentNotFoundError } from './errors/document-not-found.error';
 
 @Injectable()
 export class DocumentRepository {
-  constructor(private readonly documentDb: DocumentDb) {}
+  constructor(private readonly documentDb: DocumentWriteDbClient) {}
 
   async getById(id: string) {
     const foundDocument = await this.documentDb.findOne({ _id: id });
@@ -28,20 +31,23 @@ export class DocumentRepository {
     );
   }
 
-  private toEntity(document: DocumentModel): DocumentAggregate {
-    return new DocumentAggregate({
+  private toEntity(document: DocumentWritePersistanceModel): DocumentAggregate {
+    return DocumentAggregate.reconstitute({
       id: document._id,
       createdAt: new Date(document.createdAt),
+      updatedAt: new Date(document.updatedAt),
       content: document.content,
     });
   }
 
-  private toPersistance(document: DocumentAggregate): DocumentModel {
+  private toPersistance(
+    document: DocumentAggregate,
+  ): DocumentWritePersistanceModel {
     return {
       _id: document.id,
-      createdAt: document.createdAt.toISOString(),
+      createdAt: document.createdAt,
+      updatedAt: document.createdAt,
       content: document.content,
-      updatedAt: new Date().toISOString(),
     };
   }
 }

@@ -8,3 +8,7 @@ const UpdateDocumentContentRequestDTOSchema = z.object({
 export class UpdateDocumentContentRequestDTO extends createZodDto(
   UpdateDocumentContentRequestDTOSchema,
 ) {}
+
+export type UpdateDocumentContentRequestDTOShape = z.infer<
+  typeof UpdateDocumentContentRequestDTOSchema
+>;

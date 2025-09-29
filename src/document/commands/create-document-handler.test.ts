@@ -1,5 +1,7 @@
 import { CqrsModule, EventPublisher } from '@nestjs/cqrs';
 import { Test } from '@nestjs/testing';
+import { CreateDocumentAggregatePayloadBuilder } from '../__test-utils__/create-document-aggregate-payload.builder';
+import { CreateDocumentCommandPayloadBuilder } from '../__test-utils__/create-document-command-payload.builder';
 import { DocumentAggregate } from '../document.aggregate';
 import { DocumentRepository } from '../document.repository';
 import { CreateDocumentCommand } from './create-document.command';
@@ -33,38 +35,41 @@ describe('CreateDocumentCommandHandler', () => {
   });
 
   it('should store created document', async () => {
-    await commandHandler.execute(
-      new CreateDocumentCommand({ content: 'Hello world' }),
-    );
+    const commandPayload = aCreateDocumentPayload()
+      .withContent('content')
+      .build();
+    await commandHandler.execute(new CreateDocumentCommand(commandPayload));
 
     expect(repository.persist).toHaveBeenCalledWith(
-      expect.objectContaining({ content: 'Hello world' }),
+      expect.objectContaining({ content: 'content' }),
     );
   });
 
   it('should return aggregate id', async () => {
+    const commandPayload = aCreateDocumentPayload().build();
     const result = await commandHandler.execute(
-      new CreateDocumentCommand({ content: 'Hello world' }),
+      new CreateDocumentCommand(commandPayload),
     );
 
-    expect(result.aggregateId).toBeDefined();
+    expect(result.documentId).toBeDefined();
   });
 
   it('should emit aggregate events', async () => {
-    const documentAggregate = new DocumentAggregate({
-      id: '1',
-      content: 'hi',
-      createdAt: new Date(),
-    });
+    const commandPayload = aCreateDocumentPayload().build();
+    const documentAggregate = DocumentAggregate.create(
+      aCreateDocumentAggregatePayload().build(),
+    );
     jest
       .spyOn(eventPublisher, 'mergeObjectContext')
       .mockReturnValueOnce(documentAggregate);
     const commitSpy = jest.spyOn(documentAggregate, 'commit');
 
-    await commandHandler.execute(
-      new CreateDocumentCommand({ content: 'Hello world' }),
-    );
+    await commandHandler.execute(new CreateDocumentCommand(commandPayload));
 
     expect(commitSpy).toHaveBeenCalledTimes(1);
   });
 });
+
+const aCreateDocumentPayload = () => new CreateDocumentCommandPayloadBuilder();
+const aCreateDocumentAggregatePayload = () =>
+  new CreateDocumentAggregatePayloadBuilder();
