@@ -1,8 +1,9 @@
-export class DocumentContentUpdatedEvent {
+export class DocumentCreatedEvent {
   constructor(
     public readonly payload: {
-      documentId: string;
+      id: string;
       content: string;
+      createdAt: Date;
       updatedAt: Date;
     },
   ) {}

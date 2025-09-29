@@ -1,5 +1,6 @@
 import { DocumentTooOldForContentUpdateError } from './document-too-old-for-content-update.error';
 
+// TODO: double check tests
 describe('DocumentTooOldForContentUpdateError', () => {
   it('should have correct name', () => {
     const err = new DocumentTooOldForContentUpdateError('1');

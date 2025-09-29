@@ -1,5 +1,6 @@
 import { DocumentNotFoundError } from './document-not-found.error';
 
+// TODO: double check tests
 describe('DocumentNotFoundError', () => {
   it('should have correct name', () => {
     const err = new DocumentNotFoundError('1');

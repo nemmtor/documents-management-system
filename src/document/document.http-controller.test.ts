@@ -11,6 +11,7 @@ import { DocumentNotFoundHttpError } from './errors/document-not-found.http-erro
 import { DocumentTooOldForContentUpdateError } from './errors/document-too-old-for-content-update.error';
 import { GetDocumentQuery } from './queries/get-document.query';
 
+// TODO: double check tests
 describe('DocumentHttpController', () => {
   let controller: DocumentHttpController;
   let queryBus: QueryBus;
