@@ -8,6 +8,7 @@ import { DocumentTooOldForContentUpdateError } from '../errors/document-too-old-
 import { UpdateDocumentContentCommand } from './update-document-content.command';
 import { UpdateDocumentContentCommandHandler } from './update-document-content.handler';
 
+// TODO: double check tests
 describe('UpdateDocumentContentCommandHandler', () => {
   let commandHandler: UpdateDocumentContentCommandHandler;
   let repository: DocumentRepository;
@@ -39,10 +40,11 @@ describe('UpdateDocumentContentCommandHandler', () => {
   it('should store updated document', async () => {
     jest.spyOn(repository, 'getById').mockResolvedValueOnce(
       ok(
-        new DocumentAggregate({
+        DocumentAggregate.reconstitute({
           id: '1',
           content: 'hi',
           createdAt: new Date(),
+          updatedAt: new Date(),
         }),
       ),
     );
@@ -56,10 +58,11 @@ describe('UpdateDocumentContentCommandHandler', () => {
   });
 
   it('should update document content', async () => {
-    const documentAggregate = new DocumentAggregate({
+    const documentAggregate = DocumentAggregate.reconstitute({
       id: '1',
       content: 'hi',
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
     jest
       .spyOn(repository, 'getById')
@@ -73,10 +76,11 @@ describe('UpdateDocumentContentCommandHandler', () => {
   });
 
   it('should emit aggregate events', async () => {
-    const documentAggregate = new DocumentAggregate({
+    const documentAggregate = DocumentAggregate.reconstitute({
       id: '1',
       content: 'hi',
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
     jest
       .spyOn(eventPublisher, 'mergeObjectContext')
@@ -111,10 +115,11 @@ describe('UpdateDocumentContentCommandHandler', () => {
   });
 
   it('should fail with update content error', async () => {
-    const documentAggregate = new DocumentAggregate({
+    const documentAggregate = DocumentAggregate.reconstitute({
       id: '1',
       content: 'hi',
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
     jest
       .spyOn(eventPublisher, 'mergeObjectContext')

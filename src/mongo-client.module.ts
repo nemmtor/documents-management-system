@@ -24,6 +24,7 @@ type Options = Pick<ModuleMetadata, 'imports'> & {
 };
 
 @Module({})
+// biome-ignore lint/complexity/noStaticOnlyClass: Nestjs DI
 export class MongoClientModule {
   static forFeatureAsync(opts: Options): DynamicModule {
     return {

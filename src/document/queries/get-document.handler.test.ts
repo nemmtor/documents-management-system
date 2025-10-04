@@ -1,18 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DocumentDb } from '../document.db';
+import { DocumentReadDbClient } from '../document-read.db-client';
 import { GetDocumentQueryHandler } from './get-document.handler';
 import { GetDocumentQuery } from './get-document.query';
 
+// TODO: double check tests
 describe('GetDocumentQueryHandler', () => {
   let handler: GetDocumentQueryHandler;
-  let db: DocumentDb;
+  let readDb: DocumentReadDbClient;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GetDocumentQueryHandler,
         {
-          provide: DocumentDb,
+          provide: DocumentReadDbClient,
           useValue: {
             findOne: jest.fn(),
           },
@@ -21,10 +22,13 @@ describe('GetDocumentQueryHandler', () => {
     }).compile();
 
     handler = module.get<GetDocumentQueryHandler>(GetDocumentQueryHandler);
-    db = module.get<DocumentDb>(DocumentDb);
+    readDb = module.get<DocumentReadDbClient>(DocumentReadDbClient);
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
@@ -32,20 +36,20 @@ describe('GetDocumentQueryHandler', () => {
     const mockDbDocument = {
       _id: '1',
       content: 'test content',
-      createdAt: new Date('2023-01-01').toISOString(),
-      updatedAt: new Date('2023-01-02').toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
-    jest.spyOn(db, 'findOne').mockResolvedValueOnce(mockDbDocument);
+    jest.spyOn(readDb, 'findOne').mockResolvedValueOnce(mockDbDocument);
 
     const result = await handler.execute(
       new GetDocumentQuery({ documentId: mockDbDocument._id }),
     );
 
     expect(result).toEqual({
-      id: mockDbDocument._id,
+      id: '1',
       content: 'test content',
-      createdAt: mockDbDocument.createdAt,
-      updatedAt: mockDbDocument.updatedAt,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
   });
 
@@ -53,13 +57,13 @@ describe('GetDocumentQueryHandler', () => {
     const mockDbDocument = {
       _id: '1',
       content: 'content',
-      createdAt: new Date('2023-01-01').toISOString(),
-      updatedAt: new Date('2023-01-02').toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
       extraField1: 'should not appear',
       extraField2: 42,
       extraField3: { nested: 'object' },
     };
-    jest.spyOn(db, 'findOne').mockResolvedValueOnce(mockDbDocument);
+    jest.spyOn(readDb, 'findOne').mockResolvedValueOnce(mockDbDocument);
 
     const result = await handler.execute(
       new GetDocumentQuery({ documentId: mockDbDocument._id }),
@@ -72,7 +76,7 @@ describe('GetDocumentQueryHandler', () => {
 
   it('should call db.find with document id', async () => {
     const documentId = '1';
-    const findSpy = jest.spyOn(db, 'findOne').mockResolvedValueOnce(null);
+    const findSpy = jest.spyOn(readDb, 'findOne').mockResolvedValueOnce(null);
 
     await handler.execute(new GetDocumentQuery({ documentId }));
 
@@ -81,7 +85,7 @@ describe('GetDocumentQueryHandler', () => {
   });
 
   it('should return undefined when document is not found', async () => {
-    jest.spyOn(db, 'findOne').mockResolvedValueOnce(null);
+    jest.spyOn(readDb, 'findOne').mockResolvedValueOnce(null);
 
     const result = await handler.execute(
       new GetDocumentQuery({ documentId: '1' }),

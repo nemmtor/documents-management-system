@@ -19,11 +19,13 @@ type DocumentDatabaseConfigShape = {
 
 type DocumentConfigShape = {
   contractServiceQueue: ContractServiceQueueConfigShape;
-  database: DocumentDatabaseConfigShape;
+  readDatabase: DocumentDatabaseConfigShape;
+  writeDatabase: DocumentDatabaseConfigShape;
 };
 
 const documentEnvVarsSchema = z.object({
   CONTRACT_SERVICE_QUEUE_NAME: z.string(),
+
   RABBIT_USER: z.string(),
   RABBIT_PASSWORD: z.string(),
   RABBIT_HOST: z.string(),
@@ -31,11 +33,21 @@ const documentEnvVarsSchema = z.object({
     .string()
     .transform((v) => parseInt(v, 10))
     .pipe(z.number().min(0).max(65535)),
-  DOCUMENT_DB_NAME: z.string(),
-  DOCUMENT_DB_USER: z.string(),
-  DOCUMENT_DB_PASSWORD: z.string(),
-  DOCUMENT_DB_HOST: z.string(),
-  DOCUMENT_DB_PORT: z
+
+  DOCUMENT_WRITE_DB_NAME: z.string(),
+  DOCUMENT_WRITE_DB_USER: z.string(),
+  DOCUMENT_WRITE_DB_PASSWORD: z.string(),
+  DOCUMENT_WRITE_DB_HOST: z.string(),
+  DOCUMENT_WRITE_DB_PORT: z
+    .string()
+    .transform((v) => parseInt(v, 10))
+    .pipe(z.number().min(0).max(65535)),
+
+  DOCUMENT_READ_DB_NAME: z.string(),
+  DOCUMENT_READ_DB_USER: z.string(),
+  DOCUMENT_READ_DB_PASSWORD: z.string(),
+  DOCUMENT_READ_DB_HOST: z.string(),
+  DOCUMENT_READ_DB_PORT: z
     .string()
     .transform((v) => parseInt(v, 10))
     .pipe(z.number().min(0).max(65535)),
@@ -54,12 +66,19 @@ export const documentConfig = registerAs<DocumentConfigShape>(
         host: documentEnvVars.RABBIT_HOST,
         port: documentEnvVars.RABBIT_PORT,
       },
-      database: {
-        name: documentEnvVars.DOCUMENT_DB_NAME,
-        user: documentEnvVars.DOCUMENT_DB_USER,
-        password: documentEnvVars.DOCUMENT_DB_PASSWORD,
-        host: documentEnvVars.DOCUMENT_DB_HOST,
-        port: documentEnvVars.DOCUMENT_DB_PORT,
+      readDatabase: {
+        name: documentEnvVars.DOCUMENT_READ_DB_NAME,
+        user: documentEnvVars.DOCUMENT_READ_DB_USER,
+        password: documentEnvVars.DOCUMENT_READ_DB_PASSWORD,
+        host: documentEnvVars.DOCUMENT_READ_DB_HOST,
+        port: documentEnvVars.DOCUMENT_READ_DB_PORT,
+      },
+      writeDatabase: {
+        name: documentEnvVars.DOCUMENT_WRITE_DB_NAME,
+        user: documentEnvVars.DOCUMENT_WRITE_DB_USER,
+        password: documentEnvVars.DOCUMENT_WRITE_DB_PASSWORD,
+        host: documentEnvVars.DOCUMENT_WRITE_DB_HOST,
+        port: documentEnvVars.DOCUMENT_WRITE_DB_PORT,
       },
     };
   },

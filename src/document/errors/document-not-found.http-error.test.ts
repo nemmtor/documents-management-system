@@ -1,5 +1,6 @@
 import { DocumentNotFoundHttpError } from './document-not-found.http-error';
 
+// TODO: double check tests
 describe('DocumentNotFoundHttpError', () => {
   it('should include meaningful message', () => {
     const err = new DocumentNotFoundHttpError('1');

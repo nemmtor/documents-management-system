@@ -1,19 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DocumentAggregate } from './document.aggregate';
-import { DocumentDb } from './document.db';
 import { DocumentRepository } from './document.repository';
+import { DocumentWriteDbClient } from './document-write.db-client';
 import { DocumentNotFoundError } from './errors/document-not-found.error';
 
+// TODO: double check tests
 describe('DocumentRepository', () => {
   let repository: DocumentRepository;
-  let db: DocumentDb;
+  let db: DocumentWriteDbClient;
 
   beforeEach(async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DocumentRepository,
         {
-          provide: DocumentDb,
+          provide: DocumentWriteDbClient,
           useValue: {
             findOne: jest.fn(),
             updateOne: jest.fn(),
@@ -23,10 +27,11 @@ describe('DocumentRepository', () => {
     }).compile();
 
     repository = module.get<DocumentRepository>(DocumentRepository);
-    db = module.get<DocumentDb>(DocumentDb);
+    db = module.get<DocumentWriteDbClient>(DocumentWriteDbClient);
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
@@ -35,8 +40,8 @@ describe('DocumentRepository', () => {
       const mockDbDocument = {
         _id: '1',
         content: 'existing content',
-        createdAt: '2023-05-01T10:30:00Z',
-        updatedAt: '2023-05-02T15:45:00Z',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       jest.spyOn(db, 'findOne').mockResolvedValueOnce(mockDbDocument);
 
@@ -51,28 +56,26 @@ describe('DocumentRepository', () => {
       const mockDbDocument = {
         _id: '1',
         content: 'content',
-        createdAt: '2023-03-15T08:30:00.000Z',
-        updatedAt: '2023-03-16T08:30:00.000Z',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       jest.spyOn(db, 'findOne').mockResolvedValueOnce(mockDbDocument);
 
       const result = await repository.getById(mockDbDocument._id);
       const documentAggregate = result._unsafeUnwrap();
 
-      expect(documentAggregate.id).toBe(mockDbDocument._id);
-      expect(documentAggregate.content).toBe(mockDbDocument.content);
-      expect(documentAggregate.createdAt).toBeInstanceOf(Date);
-      expect(documentAggregate.createdAt.toISOString()).toBe(
-        mockDbDocument.createdAt,
-      );
+      expect(documentAggregate.id).toBe('1');
+      expect(documentAggregate.content).toBe('content');
+      expect(documentAggregate.createdAt).toEqual(new Date());
+      expect(documentAggregate.updatedAt).toEqual(new Date());
     });
 
     it('should query db with correct id', async () => {
       const mockDbDocument = {
         _id: '1',
         content: 'test content',
-        createdAt: '2023-01-01T00:00:00Z',
-        updatedAt: '2023-01-02T00:00:00Z',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       const findSpy = jest
         .spyOn(db, 'findOne')
@@ -99,10 +102,11 @@ describe('DocumentRepository', () => {
 
   describe('persist', () => {
     it('should persist correct data in db', async () => {
-      const documentAggregate = new DocumentAggregate({
+      const documentAggregate = DocumentAggregate.reconstitute({
         id: '1',
         content: 'content to persist',
-        createdAt: new Date('2023-01-01T00:00:00Z'),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
       const updateSpy = jest.spyOn(db, 'updateOne');
 
@@ -117,14 +121,12 @@ describe('DocumentRepository', () => {
           $set: {
             _id: documentAggregate.id,
             content: documentAggregate.content,
-            createdAt: documentAggregate.createdAt.toISOString(),
-            updatedAt: expect.any(String),
+            createdAt: new Date(),
+            updatedAt: new Date(),
           },
         },
         { upsert: true },
       );
     });
-
-    it.todo('should bump updatedAt before persisting');
   });
 });

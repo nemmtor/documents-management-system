@@ -5,6 +5,7 @@ import { DocumentRepository } from '../document.repository';
 import { CreateDocumentCommand } from './create-document.command';
 import { CreateDocumentCommandHandler } from './create-document.handler';
 
+// TODO: double check tests
 describe('CreateDocumentCommandHandler', () => {
   let commandHandler: CreateDocumentCommandHandler;
   let repository: DocumentRepository;
@@ -51,10 +52,11 @@ describe('CreateDocumentCommandHandler', () => {
   });
 
   it('should emit aggregate events', async () => {
-    const documentAggregate = new DocumentAggregate({
+    const documentAggregate = DocumentAggregate.reconstitute({
       id: '1',
       content: 'hi',
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
     jest
       .spyOn(eventPublisher, 'mergeObjectContext')

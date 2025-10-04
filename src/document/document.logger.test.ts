@@ -1,5 +1,6 @@
 import { DocumentLogger } from './document.logger';
 
+// TODO: double check tests
 describe('DocumentLogger', () => {
   it('should initialize with DocumentModule context', () => {
     const logger = new DocumentLogger();
