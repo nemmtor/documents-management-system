@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import {
   CommandHandler,
   EventPublisher,
@@ -19,9 +18,7 @@ export class CreateDocumentCommandHandler
 
   async execute(command: CreateDocumentCommand) {
     const document = this.publisher.mergeObjectContext(
-      new DocumentAggregate({
-        id: randomUUID(),
-        createdAt: new Date(),
+      DocumentAggregate.create({
         content: command.payload.content,
       }),
     );
@@ -30,7 +27,7 @@ export class CreateDocumentCommandHandler
     document.commit();
 
     return {
-      aggregateId: document.id,
+      documentId: document.id,
     };
   }
 }

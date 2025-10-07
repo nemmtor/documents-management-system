@@ -8,3 +8,7 @@ const UpdateDocumentContentParamsDTOSchema = z.object({
 export class UpdateDocumentContentParamsDTO extends createZodDto(
   UpdateDocumentContentParamsDTOSchema,
 ) {}
+
+export type UpdateDocumentContentParamsDTOShape = z.infer<
+  typeof UpdateDocumentContentParamsDTOSchema
+>;

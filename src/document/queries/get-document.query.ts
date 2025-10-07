@@ -7,8 +7,12 @@ export type DocumentReadModel = {
   updatedAt: string;
 };
 
+export type GetDocumentQueryPayload = {
+  documentId: string;
+};
+
 export class GetDocumentQuery extends Query<DocumentReadModel | undefined> {
-  constructor(public readonly payload: { documentId: string }) {
+  constructor(public readonly payload: GetDocumentQueryPayload) {
     super();
   }
 }
